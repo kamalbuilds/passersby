@@ -33,18 +33,28 @@ flow() { # flow <serial> <who> <name>
 
 PIN=1234
 
-unlock() { # unlock <serial>: setting a credential locks the device at once; wake it, open the bouncer, enter the PIN
+keyguard_showing() { adb -s "$1" shell dumpsys window policy | grep -q 'mIsShowing=true'; }
+
+unlock() { # unlock <serial>: setting a credential locks the device at once; wake it, open the bouncer, enter the PIN, retry until the keyguard is gone
   adb -s "$1" shell locksettings set-pin "$PIN"
   sleep 2
-  adb -s "$1" shell input keyevent 224
-  adb -s "$1" shell wm dismiss-keyguard
-  sleep 2
-  adb -s "$1" shell input text "$PIN"
-  sleep 1
-  adb -s "$1" shell input keyevent 66
-  sleep 3
+  local try
+  for try in 1 2 3 4 5 6; do
+    adb -s "$1" shell input keyevent 224
+    adb -s "$1" shell wm dismiss-keyguard
+    sleep 2
+    adb -s "$1" shell input swipe 360 1400 360 300 300 # opens the bouncer when dismiss-keyguard arrived before the lock screen was drawn
+    sleep 2
+    adb -s "$1" shell input text "$PIN"
+    sleep 1
+    adb -s "$1" shell input keyevent 66
+    sleep 3
+    keyguard_showing "$1" || break
+    echo "$1 keyguard still showing after attempt $try"
+  done
   adb -s "$1" shell input keyevent 3
   echo "$1 keyguard: $(adb -s "$1" shell dumpsys window policy | grep -iE 'showing' | head -2 | tr -s ' \n' ' ')"
+  ! keyguard_showing "$1"
 }
 
 prepare() {
@@ -63,7 +73,7 @@ prepare() {
       adb -s $s shell wm size 720x1600
       adb -s $s shell wm density 280
     fi
-    unlock $s
+    unlock $s || return 1
     adb -s $s shell cmd bluetooth_manager enable || true
     adb -s $s shell cmd bluetooth_manager wait-for-state:STATE_ON || true
     echo "$s bluetooth: $(adb -s $s shell dumpsys bluetooth_manager | grep -E '^\s+(enabled|state):' | tr -s ' \n' ' ')"
