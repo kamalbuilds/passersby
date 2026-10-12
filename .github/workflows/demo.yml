@@ -73,3 +73,39 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with: { name: passersby-probe, path: out, retention-days: 3 }
+
+  demo:
+    if: inputs.mode == 'full'
+    needs: [app-apk, wallet-apk]
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash demo/ci/enable-kvm.sh
+      - uses: actions/download-artifact@v4
+        with: { pattern: '*-apk', path: apks, merge-multiple: true }
+      - run: ls -l apks
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '24' }
+      - run: cd demo && npm ci --no-audit --no-fund
+      - name: Install Maestro 2.6.0 from its GitHub release
+        run: |
+          curl -fsSL -o /tmp/maestro.zip https://github.com/mobile-dev-inc/maestro/releases/download/cli-2.6.0/maestro.zip
+          unzip -q /tmp/maestro.zip -d "$HOME/.maestro-cli"
+          echo "$HOME/.maestro-cli/maestro/bin" >> "$GITHUB_PATH"
+      - run: maestro --version
+      - run: sudo apt-get install -y -qq ffmpeg
+      - run: bash demo/ci/emulators-up.sh
+      - env:
+          CI_FUNDER_KEYPAIR: ${{ secrets.CI_FUNDER_KEYPAIR }}
+        run: bash demo/ci/run-demo.sh
+      - if: always()
+        run: bash demo/ci/finish.sh
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: passersby-demo
+          path: out
+          retention-days: 14

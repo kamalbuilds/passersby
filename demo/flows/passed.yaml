@@ -1,0 +1,12 @@
+# Wait for the radar to confirm a mutual encounter, then open the kept ticket. Env: WHO, SHOTS.
+appId: xyz.passersby.app
+---
+- extendedWaitUntil:
+    visible: "Passed.*"
+    timeout: 360000
+- takeScreenshot: ${SHOTS}/${WHO}_05_passed_arrival
+- tapOn: "Encounters"
+- extendedWaitUntil:
+    visible: "Passed ·.*"
+    timeout: 120000
+- takeScreenshot: ${SHOTS}/${WHO}_06_passed_ticket

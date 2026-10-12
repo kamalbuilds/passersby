@@ -1,0 +1,27 @@
+# Connect the mock wallet and trade a signed message for a Passersby session. Env: WHO, SHOTS.
+appId: xyz.passersby.app
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Connect wallet"
+    timeout: 180000
+- takeScreenshot: ${SHOTS}/${WHO}_01_signed_out
+- tapOn: "Connect wallet"
+- extendedWaitUntil:
+    visible: "Connect|Sign In|Approve"
+    timeout: 120000
+- takeScreenshot: ${SHOTS}/${WHO}_02_wallet_sheet_one
+- tapOn: "Connect|Sign In|Approve"
+- extendedWaitUntil:
+    visible: "Approve|Sign In|Quiet street.*|.*within reach"
+    timeout: 120000
+- runFlow:
+    when:
+      visible: "Approve|Sign In"
+    commands:
+      - takeScreenshot: ${SHOTS}/${WHO}_03_wallet_sheet_two
+      - tapOn: "Approve|Sign In"
+- extendedWaitUntil:
+    visible: "Quiet street.*|.*within reach"
+    timeout: 180000
+- takeScreenshot: ${SHOTS}/${WHO}_04_radar_live
