@@ -35,7 +35,10 @@ function PulseRing({ size, delay, run }: { size: number; delay: number; run: boo
       p.value = 0
       return
     }
-    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: PULSE_MS, easing: Easing.out(Easing.quad) }), -1, false))
+    p.value = withDelay(
+      delay,
+      withRepeat(withTiming(1, { duration: PULSE_MS, easing: Easing.out(Easing.quad) }), -1, false),
+    )
     return () => cancelAnimation(p)
   }, [run, delay, p])
   const style = useAnimatedStyle(() => ({
@@ -80,9 +83,12 @@ function Dot({ token, rssi, size }: { token: string; rssi: number; size: number 
   }, [a, r, half, x, y, reduced])
   const style = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }, { translateY: y.value }] }))
   return (
-    <Animated.View entering={ZoomIn.duration(320)} style={[styles.dotWrap, style]} pointerEvents="none">
-      <View style={styles.halo} />
-      <View style={styles.dot} />
+    // Two layers: the outer one owns the position transform, the inner one owns the entering animation.
+    <Animated.View style={[styles.dotWrap, style]} pointerEvents="none">
+      <Animated.View entering={ZoomIn.duration(320)} style={styles.dotInner}>
+        <View style={styles.halo} />
+        <View style={styles.dot} />
+      </Animated.View>
     </Animated.View>
   )
 }
@@ -138,9 +144,18 @@ function RadarDiscBase({ size, nearby, live, idleLabel }: Props) {
 export const RadarDisc = memo(RadarDiscBase)
 
 const styles = StyleSheet.create({
-  ring: { position: 'absolute', borderWidth: 1, borderColor: color.line },
+  ring: { position: 'absolute', borderWidth: 1, borderColor: color.lineStrong },
   center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  dotWrap: { position: 'absolute', left: 0, top: 0, width: DOT, height: DOT, alignItems: 'center', justifyContent: 'center' },
+  dotWrap: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    width: DOT,
+    height: DOT,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dotInner: { width: DOT, height: DOT, alignItems: 'center', justifyContent: 'center' },
   dot: { width: DOT, height: DOT, borderRadius: DOT / 2, backgroundColor: color.signal },
   halo: {
     position: 'absolute',

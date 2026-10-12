@@ -67,7 +67,10 @@ export function EncountersScreen() {
 
   let empty: React.ReactElement | null = null
   if (status !== 'signed-in') {
-    empty = status === 'loading' ? null : <SignInPrompt reason="Connect to see everyone you have passed, and to wave at them." />
+    empty =
+      status === 'loading' ? null : (
+        <SignInPrompt reason="Connect to see everyone you have passed, and to wave at them." />
+      )
   } else if (query.isPending) {
     empty = <Placeholder />
   } else if (query.isError) {
@@ -101,7 +104,11 @@ export function EncountersScreen() {
         sections={sections}
         keyExtractor={(v) => v.record.address}
         stickySectionHeadersEnabled={false}
-        contentContainerStyle={{ paddingTop: insets.top + space.md, paddingHorizontal: space.xl, paddingBottom: space.huge }}
+        contentContainerStyle={{
+          paddingTop: insets.top + space.md,
+          paddingHorizontal: space.xl,
+          paddingBottom: space.huge,
+        }}
         ListHeaderComponent={header}
         ListEmptyComponent={empty}
         renderSectionHeader={({ section }) => (
@@ -137,6 +144,12 @@ const styles = StyleSheet.create({
   sectionTitle: { marginTop: space.lg, marginBottom: space.sm },
   item: { marginBottom: space.md },
   list: { gap: space.md },
-  ghost: { height: 92, borderRadius: radius.lg, backgroundColor: color.surface, borderWidth: 1, borderColor: color.line },
+  ghost: {
+    height: 92,
+    borderRadius: radius.lg,
+    backgroundColor: color.surface,
+    borderWidth: 1,
+    borderColor: color.line,
+  },
   message: { gap: space.md, paddingTop: space.lg },
 })

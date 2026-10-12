@@ -103,7 +103,9 @@ export function PassportScreen() {
           accessibilityRole="link"
           accessibilityLabel="View the Passersby program on the Solana explorer"
           onPress={() =>
-            WebBrowser.openBrowserAsync(`https://explorer.solana.com/address/${programId}${ACTIVE_CLUSTER.explorerParam}`)
+            WebBrowser.openBrowserAsync(
+              `https://explorer.solana.com/address/${programId}${ACTIVE_CLUSTER.explorerParam}`,
+            )
           }
           style={styles.program}
         >
@@ -116,7 +118,7 @@ export function PassportScreen() {
         </Pressable>
       ) : null}
 
-      <Button label="Disconnect" variant="ghost" onPress={signOut} style={styles.signOut} />
+      <Button label="Disconnect" variant="secondary" compact onPress={signOut} style={styles.signOut} />
     </Screen>
   )
 }

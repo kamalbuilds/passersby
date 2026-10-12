@@ -14,6 +14,12 @@ export function NetworkChip() {
 }
 
 const styles = StyleSheet.create({
-  chip: { borderWidth: 1, borderColor: color.lineStrong, borderRadius: radius.pill, paddingHorizontal: space.md, paddingVertical: 3 },
+  chip: {
+    borderWidth: 1,
+    borderColor: color.lineStrong,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    paddingVertical: 3,
+  },
   text: { fontFamily: font.mono, fontSize: 11 },
 })

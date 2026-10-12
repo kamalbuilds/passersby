@@ -3,7 +3,6 @@ import { StyleSheet, useWindowDimensions, View } from 'react-native'
 import { NetworkChip } from '@/components/ui/network-chip'
 import { Screen } from '@/components/ui/screen'
 import { T } from '@/components/ui/text'
-import { TierBadge } from '@/components/ui/tier-badge'
 import { space } from '@/constants/theme'
 import type { ProfileRecord } from '@/lib/api'
 import { EncounterCard } from '@/features/encounters/encounter-card'
@@ -109,19 +108,11 @@ export function RadarScreen() {
         <T v="title" style={styles.wordmark}>
           passersby
         </T>
-        <View style={styles.headerRight}>
-          {session ? <TierBadge tier={session.tier} /> : null}
-          <NetworkChip />
-        </View>
+        <NetworkChip />
       </View>
 
       <View style={styles.disc}>
-        <RadarDisc
-          size={size}
-          nearby={radar.nearby}
-          live={live}
-          idleLabel={signedIn ? 'Radar paused' : 'Radar off'}
-        />
+        <RadarDisc size={size} nearby={radar.nearby} live={live} idleLabel={signedIn ? 'Radar paused' : 'Radar off'} />
       </View>
 
       {signedIn ? (
@@ -138,7 +129,6 @@ export function RadarScreen() {
 
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.xl },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: space.sm },
   wordmark: { fontSize: 17, letterSpacing: -0.2 },
   disc: { alignItems: 'center', marginBottom: space.xl },
   block: { gap: space.lg },

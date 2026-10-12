@@ -22,7 +22,8 @@ const STEP_LABEL: Record<WaveStep, string> = {
   confirming: 'Confirming on Solana',
 }
 
-type WaveUi = { kind: 'idle' } | { kind: 'choose' } | { kind: 'sending'; step: WaveStep } | { kind: 'error'; message: string }
+type WaveUi =
+  { kind: 'idle' } | { kind: 'choose' } | { kind: 'sending'; step: WaveStep } | { kind: 'error'; message: string }
 
 type Props = {
   view: EncounterView
@@ -108,7 +109,14 @@ function EncounterCardBase({ view, nowMs, animate, fresh }: Props) {
           </T>
           <View style={styles.amounts}>
             {WAVE_AMOUNTS.map((a) => (
-              <Button key={a} label={`${a} SKR`} variant="secondary" compact onPress={() => send(a)} style={styles.amount} />
+              <Button
+                key={a}
+                label={`${a} SKR`}
+                variant="secondary"
+                compact
+                onPress={() => send(a)}
+                style={styles.amount}
+              />
             ))}
           </View>
           <Button label="Cancel" variant="ghost" compact onPress={() => setUi({ kind: 'idle' })} />

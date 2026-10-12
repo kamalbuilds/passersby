@@ -3,19 +3,20 @@ import { AppState } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { useQueryClient } from '@tanstack/react-query'
 import { PassersbyBle, type BleError } from '@/modules/passersby-ble'
-import { ApiError, describeApiError, fetchBeacon, postSightings, type Confirmation, type SightingInput } from '@/lib/api'
+import {
+  ApiError,
+  describeApiError,
+  fetchBeacon,
+  postSightings,
+  type Confirmation,
+  type SightingInput,
+} from '@/lib/api'
 import { hasBlePermission, openAppSettings, openBluetoothSettings, requestBlePermission } from '@/lib/ble'
 import { loadAnnounced, saveAnnounced } from '@/lib/announced'
 import { useSession } from '@/features/session/session-provider'
 
 export type RadarPhase =
-  | 'off'
-  | 'starting'
-  | 'live'
-  | 'permission-denied'
-  | 'permission-blocked'
-  | 'bluetooth-off'
-  | 'error'
+  'off' | 'starting' | 'live' | 'permission-denied' | 'permission-blocked' | 'bluetooth-off' | 'error'
 
 export type Nearby = { token: string; rssi: number; lastSeen: number }
 export type Arrival = { confirmation: Confirmation; arrivedAt: number; fresh: boolean }
@@ -167,7 +168,11 @@ export function RadarProvider({ children }: PropsWithChildren) {
         if (e instanceof ApiError && e.unauthorized) {
           if (alive) expire()
         } else if (alive) {
-          setSyncError(e instanceof ApiError ? describeApiError(e) : 'Offline. Sightings are kept and sent when you are back online.')
+          setSyncError(
+            e instanceof ApiError
+              ? describeApiError(e)
+              : 'Offline. Sightings are kept and sent when you are back online.',
+          )
         }
       } finally {
         flushing = false

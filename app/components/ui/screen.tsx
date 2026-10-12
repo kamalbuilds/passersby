@@ -14,7 +14,11 @@ export function Screen({ children, refreshControl }: Props) {
       <StatusBar style="light" />
       <ScrollView
         refreshControl={refreshControl}
-        contentContainerStyle={{ paddingTop: insets.top + space.md, paddingHorizontal: space.xl, paddingBottom: space.huge }}
+        contentContainerStyle={{
+          paddingTop: insets.top + space.md,
+          paddingHorizontal: space.xl,
+          paddingBottom: space.huge,
+        }}
         showsVerticalScrollIndicator={false}
       >
         {children}

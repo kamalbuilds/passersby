@@ -71,9 +71,8 @@ const ro = (a: Address) => ({ address: a, role: AccountRole.READONLY })
 const rw = (a: Address) => ({ address: a, role: AccountRole.WRITABLE })
 
 /**
- * `wave(amount)`. Account order follows the Wave accounts struct in program/programs/passersby/src/lib.rs.
- * The IDL was not published when this was written, so the layout is built from that struct and
- * the Anchor discriminator rather than loaded from target/idl.
+ * `wave(amount)`. Account order, flags and discriminator are checked against program/target/idl/passersby.json
+ * by lib/program.test.ts (`npm test`).
  */
 export function waveInstruction(p: WaveParams): Instruction {
   const data = new Uint8Array(16)

@@ -97,7 +97,12 @@ const isRecord = (v: unknown): v is Record<string, unknown> => !!v && typeof v =
 
 export async function createSession(wallet: string, message: string, signature: string): Promise<SessionResponse> {
   const r = await request<unknown>('/session', { method: 'POST', body: JSON.stringify({ wallet, message, signature }) })
-  if (!isRecord(r) || !isString(r.sessionToken) || !isString(r.identity) || (r.tier !== 'seeker' && r.tier !== 'wallet')) {
+  if (
+    !isRecord(r) ||
+    !isString(r.sessionToken) ||
+    !isString(r.identity) ||
+    (r.tier !== 'seeker' && r.tier !== 'wallet')
+  ) {
     throw new Error('The Passersby server returned an unexpected sign-in response.')
   }
   return { sessionToken: r.sessionToken, identity: r.identity, tier: r.tier }
@@ -119,12 +124,14 @@ export async function fetchBeacon(token: string): Promise<Beacon> {
 
 export async function postSightings(token: string, sightings: SightingInput[]): Promise<Confirmation[]> {
   const r = await request<unknown>('/sightings', { method: 'POST', token, body: JSON.stringify({ sightings }) })
-  if (!isRecord(r) || !Array.isArray(r.confirmed)) throw new Error('The Passersby server returned an unexpected response.')
+  if (!isRecord(r) || !Array.isArray(r.confirmed))
+    throw new Error('The Passersby server returned an unexpected response.')
   return r.confirmed as Confirmation[]
 }
 
 export async function fetchEncounters(identity: string): Promise<EncountersResponse> {
   const r = await request<unknown>(`/encounters?identity=${encodeURIComponent(identity)}`)
-  if (!isRecord(r) || !Array.isArray(r.encounters)) throw new Error('The Passersby server returned an unexpected response.')
+  if (!isRecord(r) || !Array.isArray(r.encounters))
+    throw new Error('The Passersby server returned an unexpected response.')
   return { encounters: r.encounters as EncounterRecord[], profile: (r.profile as ProfileRecord | null) ?? null }
 }
