@@ -1,0 +1,73 @@
+name: demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: probe boots two emulators and checks Bluetooth only. full records the demo.
+        type: choice
+        options: [full, probe]
+        default: full
+
+jobs:
+  app-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - id: key
+        run: echo "k=$(git log -1 --format=%H -- app)" >> "$GITHUB_OUTPUT"
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: app-release-x86_64.apk
+          key: app-apk-x86_64-${{ steps.key.outputs.k }}
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with: { node-version: '24', cache: npm, cache-dependency-path: app/package-lock.json }
+      - if: steps.cache.outputs.cache-hit != 'true'
+        working-directory: app
+        run: |
+          npm install --no-audit --no-fund
+          npx expo prebuild -p android --no-install
+          cd android && ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/app-release-x86_64.apk"
+      - run: ls -l app-release-x86_64.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: app-apk, path: app-release-x86_64.apk, retention-days: 3 }
+
+  wallet-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - id: cache
+        uses: actions/cache@v4
+        with:
+          path: mwallet.apk
+          key: wallet-apk-${{ hashFiles('demo/ci/build-wallet.sh') }}
+      - if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - if: steps.cache.outputs.cache-hit != 'true'
+        run: bash demo/ci/build-wallet.sh
+      - run: ls -l mwallet.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: wallet-apk, path: mwallet.apk, retention-days: 3 }
+
+  probe:
+    if: inputs.mode == 'probe'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash demo/ci/enable-kvm.sh
+      - run: bash demo/ci/emulators-up.sh
+      - run: bash demo/ci/bt-probe.sh
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with: { name: passersby-probe, path: out, retention-days: 3 }
