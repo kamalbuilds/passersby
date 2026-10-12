@@ -23,7 +23,7 @@ stage() {
   echo "::endgroup::"
 }
 flow() { # flow <serial> <who> <name>
-  maestro --device "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_$3" "$GITHUB_WORKSPACE/demo/flows/$3.yaml"
+  timeout 900 maestro --device "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_$3" "$GITHUB_WORKSPACE/demo/flows/$3.yaml"
 }
 
 PIN=1234
@@ -64,7 +64,10 @@ prepare() {
 wallet_auth() { # wallet_auth <serial> <who>: authenticate the mock wallet once with the device PIN
   adb -s "$1" logcat -G 16M
   adb -s "$1" logcat -c
-  maestro --device "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_wallet-open" "$GITHUB_WORKSPACE/demo/flows/wallet-open.yaml" || return 1
+  # run 38239605618 hung here for 10 minutes after the Authenticate assertion: bound it, and go on to the PIN, which the log check then proves or refutes
+  timeout 180 maestro --device "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_wallet-open" "$GITHUB_WORKSPACE/demo/flows/wallet-open.yaml"
+  local rc=$?
+  [ $rc -eq 0 ] || [ $rc -eq 124 ] || return 1
   sleep 3
   adb -s "$1" exec-out screencap -p > "$SHOTS/${2}_00_pin_prompt.png" 2>/dev/null || true
   adb -s "$1" shell input text "$PIN"

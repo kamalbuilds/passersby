@@ -6,5 +6,4 @@ appId: com.solana.mwallet
 - extendedWaitUntil:
     visible: Authenticate
     timeout: 90000
-- takeScreenshot: ${SHOTS}/${WHO}_00_wallet_home
 - tapOn: Authenticate
