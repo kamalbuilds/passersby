@@ -28,6 +28,7 @@ stage() {
   echo "::endgroup::"
 }
 flow() { # flow <serial> <who> <name>
+  ensure_unlocked "$1"
   timeout 900 maestro --udid "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_$3" "$GITHUB_WORKSPACE/demo/flows/$3.yaml"
 }
 
@@ -35,9 +36,7 @@ PIN=1234
 
 keyguard_showing() { adb -s "$1" shell dumpsys window policy | grep -q 'mIsShowing=true'; }
 
-unlock() { # unlock <serial>: setting a credential locks the device at once; wake it, open the bouncer, enter the PIN, retry until the keyguard is gone
-  adb -s "$1" shell locksettings set-pin "$PIN"
-  sleep 2
+enter_pin() { # enter_pin <serial>: wake, open the bouncer, enter the PIN, retry until the keyguard is gone
   local try
   for try in 1 2 3 4 5 6; do
     adb -s "$1" shell input keyevent 224
@@ -55,6 +54,28 @@ unlock() { # unlock <serial>: setting a credential locks the device at once; wak
   adb -s "$1" shell input keyevent 3
   echo "$1 keyguard: $(adb -s "$1" shell dumpsys window policy | grep -iE 'showing' | head -2 | tr -s ' \n' ' ')"
   ! keyguard_showing "$1"
+}
+
+unlock() { # unlock <serial>: setting a credential locks the device at once
+  adb -s "$1" shell locksettings set-pin "$PIN"
+  sleep 2
+  enter_pin "$1"
+}
+
+ensure_unlocked() { # a starved System UI that gets ANR-killed comes back on the lock screen: unlock again before driving the UI
+  if keyguard_showing "$1"; then echo "$1 re-locked, entering PIN"; enter_pin "$1"; fi
+  return 0
+}
+
+settle() { # settle <serial>: first-boot work (dexopt, Play services) starves System UI into an ANR that re-locks the device; wait for the 1-minute load average to drop under 3.5
+  local t=$((SECONDS + 300)) l
+  while :; do
+    l=$(timeout 20 adb -s "$1" shell cat /proc/loadavg | cut -d' ' -f1)
+    echo "$(date +%T) $1 load $l"
+    awk -v l="${l:-99}" 'BEGIN{exit !(l < 3.5)}' && break
+    [ $SECONDS -lt $t ] || { echo "$1 still busy, continuing"; break; }
+    sleep 10
+  done
 }
 
 prepare() {
@@ -83,6 +104,7 @@ prepare() {
 wallet_auth() { # wallet_auth <serial> <who>: authenticate the mock wallet once with the device PIN
   adb -s "$1" logcat -G 16M
   adb -s "$1" logcat -c
+  ensure_unlocked "$1"
   # run 38239605618 hung here for 10 minutes after the Authenticate assertion: bound it, and go on to the PIN, which the log check then proves or refutes
   timeout 180 maestro --udid "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_wallet-open" "$GITHUB_WORKSPACE/demo/flows/wallet-open.yaml"
   local rc=$?
@@ -175,7 +197,9 @@ if [ -z "${TWO_EMULATORS:-}" ]; then
 for s in $SERIALS; do adb -s $s root >/dev/null 2>&1; timeout 60 adb -s $s wait-for-device; done # the fallback reads app storage, and adbd restarts on root
 sleep 3
 adb -s $A logcat -v threadtime > "$OUT/logs/logcat_a.txt" 2>&1 &
+settle $A
 stage prepare prepare
+settle $A
 watch_credential $A > "$OUT/logs/credential_a.txt" 2>&1 &
 stage wallet_auth_a wallet_auth $A a
 # record only after the wallet PIN step so the video opens on the app
