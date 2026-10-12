@@ -23,13 +23,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: app-release-x86_64.apk
-          key: app-apk-x86_64-${{ steps.key.outputs.k }}
+          key: app-apk-x86_64-${{ steps.key.outputs.k }}-${{ hashFiles('demo/native/**') }}
       - if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: '21' }
       - if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with: { node-version: '24', cache: npm, cache-dependency-path: app/package-lock.json }
+      - name: Restore the BLE module native sources (the repo's root .gitignore drops every android/ folder)
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p app/modules/passersby-ble/android
+          cp -r demo/native/passersby-ble-android/. app/modules/passersby-ble/android/
+          find app/modules/passersby-ble/android -type f
       - if: steps.cache.outputs.cache-hit != 'true'
         working-directory: app
         run: |
@@ -37,6 +43,9 @@ jobs:
           npx expo prebuild -p android --no-install
           cd android && ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
           cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/app-release-x86_64.apk"
+          M=$(find app/build/intermediates -path '*merged_manifest*' -name AndroidManifest.xml | head -1)
+          echo "merged manifest: $M"
+          grep -q BLUETOOTH_SCAN "$M"
       - run: ls -l app-release-x86_64.apk
       - uses: actions/upload-artifact@v4
         with: { name: app-apk, path: app-release-x86_64.apk, retention-days: 3 }

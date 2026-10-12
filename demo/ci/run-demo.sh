@@ -14,7 +14,7 @@ APP=xyz.passersby.app
 
 snap() { # snap <serial> <name>: screenshot plus UI tree, for stages that fail
   adb -s "$1" exec-out screencap -p > "$SHOTS/$2.png" 2>/dev/null || true
-  adb -s "$1" shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb -s "$1" pull /sdcard/ui.xml "$OUT/ui/$2.xml" >/dev/null 2>&1 || true
+  adb -s "$1" shell uiautomator dump /data/local/tmp/ui.xml >/dev/null 2>&1 && adb -s "$1" pull /data/local/tmp/ui.xml "$OUT/ui/$2.xml" >/dev/null 2>&1 || true
 }
 stage() {
   local name=$1; shift
@@ -43,17 +43,17 @@ prepare() {
 }
 
 record() { # record <serial> <label>: chained 170 s segments written on the device
-  adb -s "$1" shell "touch /sdcard/rec.run"
-  nohup adb -s "$1" shell 'i=0; while [ -f /sdcard/rec.run ]; do i=$((i+1)); screenrecord --bit-rate 8000000 --time-limit 170 /sdcard/rec_$(printf %03d $i).mp4; done' \
+  adb -s "$1" shell "echo 1 > /data/local/tmp/rec.run"
+  nohup adb -s "$1" shell 'i=0; while [ -f /data/local/tmp/rec.run ]; do i=$((i+1)); screenrecord --bit-rate 8000000 --time-limit 170 /data/local/tmp/rec_$(printf %03d $i).mp4; done' \
     > "$OUT/logs/record_$2.log" 2>&1 &
 }
 stop_record() {
-  for s in $A $B; do adb -s $s shell rm -f /sdcard/rec.run; adb -s $s shell pkill -INT screenrecord; done
+  for s in $A $B; do adb -s $s shell rm -f /data/local/tmp/rec.run; adb -s $s shell pkill -INT screenrecord; done
   sleep 8
   for pair in "$A a" "$B b"; do
     set -- $pair
-    adb -s "$1" shell ls /sdcard/ | grep '^rec_.*mp4$' | tr -d '\r' | while read -r f; do
-      adb -s "$1" pull "/sdcard/$f" "$OUT/video/${2}_$f" >/dev/null
+    for f in $(adb -s "$1" shell ls /data/local/tmp/ | tr -d '\r' | grep '^rec_.*mp4$'); do
+      adb -s "$1" pull "/data/local/tmp/$f" "$OUT/video/${2}_$f" >/dev/null
     done
   done
 }

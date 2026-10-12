@@ -4,7 +4,7 @@ appId: xyz.passersby.app
 - launchApp
 - extendedWaitUntil:
     visible: "Connect wallet"
-    timeout: 180000
+    timeout: 90000
 - takeScreenshot: ${SHOTS}/${WHO}_01_signed_out
 - tapOn: "Connect wallet"
 - extendedWaitUntil:
@@ -23,5 +23,5 @@ appId: xyz.passersby.app
       - tapOn: "Approve|Sign In"
 - extendedWaitUntil:
     visible: "Quiet street.*|.*within reach"
-    timeout: 180000
+    timeout: 90000
 - takeScreenshot: ${SHOTS}/${WHO}_04_radar_live
