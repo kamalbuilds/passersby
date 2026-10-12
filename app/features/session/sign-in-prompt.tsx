@@ -10,23 +10,30 @@ const WORKING_LABEL = {
   verifying: 'Checking Seeker status',
 } as const
 
-/** Shown on tabs that need a session. One sentence of why, one button. */
-export function SignInPrompt({ reason }: { reason: string }) {
+/** The one way in. An optional sentence of why, the wallet error if there was one, and one pill. */
+export function SignInPrompt({ reason }: { reason?: string }) {
   const { status, error, signIn } = useSession()
   const working = status === 'connecting' || status === 'signing' || status === 'verifying'
   return (
     <View style={styles.box}>
-      <T v="body" c="inkDim">
-        {reason}
-      </T>
+      {reason ? (
+        <T v="body" c="text2">
+          {reason}
+        </T>
+      ) : null}
+      {working ? (
+        <T v="mono" c="text2" accessibilityLiveRegion="polite">
+          {WORKING_LABEL[status]}
+        </T>
+      ) : null}
       {error ? (
-        <T v="label" c="danger" accessibilityLiveRegion="polite">
+        <T v="mono" c="warn" accessibilityLiveRegion="polite">
           {error}
         </T>
       ) : null}
-      <Button label={working ? `${WORKING_LABEL[status]}…` : 'Connect wallet'} loading={working} onPress={signIn} />
+      <Button label="Connect wallet" loading={working} onPress={signIn} />
     </View>
   )
 }
 
-const styles = StyleSheet.create({ box: { gap: space.md, paddingTop: space.lg } })
+const styles = StyleSheet.create({ box: { gap: space.md } })

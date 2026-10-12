@@ -10,8 +10,8 @@ export function EpochCountdown({ endsAt }: { endsAt: number | null }) {
   }, [])
   if (!endsAt) return null
   return (
-    <T v="mono" c="inkDim" tabular>
-      new code in {countdown(endsAt - now)}
+    <T v="label" c="text3">
+      New code in {countdown(endsAt - now)}
     </T>
   )
 }

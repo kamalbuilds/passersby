@@ -1,14 +1,12 @@
-import { Text as RNText, type TextProps, type TextStyle } from 'react-native'
-import { color, type } from '@/constants/theme'
+import { Text as RNText, type TextProps } from 'react-native'
+import { color, text, type ColorName } from '@/constants/theme'
 
 type Props = TextProps & {
-  v?: keyof typeof type
-  c?: keyof typeof color
-  tabular?: boolean
+  v?: keyof typeof text
+  c?: ColorName
 }
 
-/** Themed text. Numbers in lists and ledgers use tabular figures so columns hold still. */
-export function T({ v = 'body', c = 'ink', tabular, style, ...rest }: Props) {
-  const base: TextStyle = { ...type[v], color: color[c] }
-  return <RNText {...rest} style={[base, tabular && { fontVariant: ['tabular-nums'] }, style]} />
+/** Themed text: a type token and a colour token, nothing else. */
+export function T({ v = 'body', c = 'text', style, ...rest }: Props) {
+  return <RNText {...rest} style={[text[v], { color: color[c] }, style]} />
 }

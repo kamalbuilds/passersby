@@ -1,53 +1,60 @@
+import { useMemo } from 'react'
 import { Pressable, RefreshControl, StyleSheet, View } from 'react-native'
 import * as WebBrowser from 'expo-web-browser'
+import { TierBadge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Glyph } from '@/components/ui/glyph'
-import { NetworkChip } from '@/components/ui/network-chip'
 import { Screen } from '@/components/ui/screen'
 import { T } from '@/components/ui/text'
-import { TierBadge } from '@/components/ui/tier-badge'
 import { ACTIVE_CLUSTER } from '@/constants/cluster'
-import { color, space } from '@/constants/theme'
+import { color, radius, space } from '@/constants/theme'
 import { useEncounters } from '@/features/encounters/use-encounters'
 import { SignInPrompt } from '@/features/session/sign-in-prompt'
 import { useSession } from '@/features/session/session-provider'
 import { liveStreak, shortAddress, utcDay } from '@/lib/format'
+import { lampDays } from './lamp-days'
+import { LampRow } from './lamp-row'
 
-function Row({ label, value, note }: { label: string; value: number; note?: string }) {
+function Line({ label, value, note }: { label: string; value: number; note?: string }) {
   return (
-    <View style={styles.row} accessible accessibilityLabel={`${label}: ${value}`}>
-      <View style={styles.rowLabel}>
-        <T v="body">{label}</T>
+    <View style={styles.line} accessible accessibilityLabel={`${label}: ${value}${note ? ` ${note}` : ''}`}>
+      <View style={styles.lineLabel}>
+        <T v="label" c="text2">
+          {label}
+        </T>
         {note ? (
-          <T v="caption" c="inkFaint">
+          <T v="label" c="text3">
             {note}
           </T>
         ) : null}
       </View>
-      <T v="title" tabular style={styles.value}>
-        {value}
-      </T>
+      <T v="title">{value}</T>
     </View>
   )
 }
 
 export function PassportScreen() {
   const { status, session, signOut } = useSession()
-  const { query, profile } = useEncounters()
+  const { query, views, profile } = useEncounters()
+  const today = utcDay(Date.now())
+  const lit = useMemo(() => lampDays(views.map((v) => v.record.day), today), [views, today])
 
   if (status !== 'signed-in' || !session) {
     return (
       <Screen>
-        <T v="headline">Passport</T>
+        <T v="hero">Passport</T>
         {status === 'loading' ? null : (
-          <SignInPrompt reason="Your passport counts the people you have passed. Connect your wallet to open it." />
+          <View style={styles.signedOut}>
+            <T v="title">Stamped by every person you pass.</T>
+            <SignInPrompt reason="Connect your wallet to open your passport and see the nights you have lit." />
+          </View>
         )}
       </Screen>
     )
   }
 
   const seeker = session.tier === 'seeker'
-  const streak = profile ? liveStreak(profile.streak, profile.lastDay, utcDay(Date.now())) : 0
+  const streak = profile ? liveStreak(profile.streak, profile.lastDay, today) : 0
   const programId = ACTIVE_CLUSTER.programId
 
   return (
@@ -56,45 +63,53 @@ export function PassportScreen() {
         <RefreshControl
           refreshing={query.isRefetching}
           onRefresh={() => query.refetch()}
-          tintColor={color.signal}
-          colors={[color.signal]}
-          progressBackgroundColor={color.surfaceRaised}
+          tintColor={color.sodium}
+          colors={[color.sodium]}
+          progressBackgroundColor={color.night2}
         />
       }
     >
-      <View style={styles.header}>
-        <T v="headline">Passport</T>
-        <NetworkChip />
-      </View>
+      <T v="hero">Passport</T>
 
       <View style={styles.identity}>
-        <Glyph seed={session.identity} size={64} />
-        <View style={styles.identityText}>
-          <T v="mono" style={styles.address} selectable>
-            {shortAddress(session.wallet)}
-          </T>
-          <TierBadge tier={session.tier} />
+        <View style={styles.identityHead}>
+          <Glyph seed={session.identity} size={56} />
+          <View style={styles.identityText}>
+            <T v="mono" selectable>
+              {shortAddress(session.wallet)}
+            </T>
+            <TierBadge tier={session.tier} />
+          </View>
         </View>
+        <T v="mono" c="text2">
+          {seeker
+            ? 'Your Seeker Genesis Token is on-chain proof of a Seeker phone. It makes your meetings with other Seekers count as verified.'
+            : 'A Seeker Genesis Token is on-chain proof of a Seeker phone. Hold one and your meetings with other Seekers count as verified.'}
+        </T>
       </View>
-      <T v="body" c="inkDim" style={styles.sgt}>
-        {seeker
-          ? 'Your Seeker Genesis Token (SGT) is the on-chain proof that comes with every Seeker phone. It makes encounters with other Seekers count as verified.'
-          : 'A Seeker Genesis Token (SGT) is the on-chain proof that comes with every Seeker phone. Hold one and your encounters with other Seekers count as verified.'}
-      </T>
+
+      <View style={styles.total} accessibilityLabel={`${profile?.encounters ?? 0} encounters`} accessible>
+        <T v="count">{profile?.encounters ?? 0}</T>
+        <T v="body" c="text2">
+          {profile?.encounters === 1 ? 'person passed' : 'people passed'}
+        </T>
+      </View>
+
+      <LampRow lit={lit} />
 
       <View style={styles.ledger}>
-        <Row label="Encounters" value={profile?.encounters ?? 0} />
-        <Row label="Verified" value={profile?.verifiedEncounters ?? 0} note="Seeker to Seeker" />
-        <Row label="Streak" value={streak} note={streak === 1 ? 'day' : 'days'} />
-        <Row label="Waves received" value={profile?.wavesReceived ?? 0} />
+        <Line label="Verified" value={profile?.verifiedEncounters ?? 0} note="Seeker to Seeker" />
+        <Line label="Day streak" value={streak} />
+        <Line label="Waves received" value={profile?.wavesReceived ?? 0} />
       </View>
+
       {query.isPending ? (
-        <T v="caption" c="inkFaint">
-          Reading your passport from Solana…
+        <T v="mono" c="text3" style={styles.note}>
+          Reading your passport from Solana
         </T>
       ) : profile ? null : (
-        <T v="body" c="inkDim">
-          Nothing stamped yet. Open the radar and pass someone to earn your first entry.
+        <T v="body" c="text2" style={styles.note}>
+          Nothing stamped yet. Open the street and pass someone to earn your first entry.
         </T>
       )}
 
@@ -103,34 +118,36 @@ export function PassportScreen() {
           accessibilityRole="link"
           accessibilityLabel="View the Passersby program on the Solana explorer"
           onPress={() =>
-            WebBrowser.openBrowserAsync(
-              `https://explorer.solana.com/address/${programId}${ACTIVE_CLUSTER.explorerParam}`,
-            )
+            WebBrowser.openBrowserAsync(`https://explorer.solana.com/address/${programId}${ACTIVE_CLUSTER.explorerParam}`)
           }
+          hitSlop={8}
           style={styles.program}
         >
-          <T v="caption" c="inkFaint">
+          <T v="label" c="text3">
             Program
           </T>
-          <T v="mono" c="inkDim" style={styles.link}>
+          <T v="mono" c="text2" style={styles.link}>
             {shortAddress(programId)}
+          </T>
+          <T v="label" c="text3">
+            {ACTIVE_CLUSTER.networkLabel}
           </T>
         </Pressable>
       ) : null}
 
-      <Button label="Disconnect" variant="secondary" compact onPress={signOut} style={styles.signOut} />
+      <Button label="Disconnect" variant="ghost" compact onPress={signOut} style={styles.signOut} />
     </Screen>
   )
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.xl },
-  identity: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
+  signedOut: { gap: space.lg, marginTop: space.xl },
+  identity: { backgroundColor: color.night2, borderRadius: radius.ticket, padding: space.lg, gap: space.lg, marginTop: space.xl },
+  identityHead: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
   identityText: { gap: space.sm, flex: 1 },
-  address: { fontSize: 18, lineHeight: 24 },
-  sgt: { marginTop: space.lg },
+  total: { flexDirection: 'row', alignItems: 'baseline', gap: space.md, marginTop: space.xxl, marginBottom: space.xl },
   ledger: { marginTop: space.xl, borderTopWidth: 1, borderTopColor: color.line },
-  row: {
+  line: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -138,9 +155,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: color.line,
   },
-  rowLabel: { gap: 2 },
-  value: { fontSize: 30, lineHeight: 38 },
+  lineLabel: { gap: space.xs },
+  note: { marginTop: space.lg },
   program: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.xl },
   link: { textDecorationLine: 'underline' },
-  signOut: { marginTop: space.xl, alignSelf: 'flex-start' },
+  signOut: { marginTop: space.xl, alignSelf: 'flex-start', marginLeft: -space.lg },
 })

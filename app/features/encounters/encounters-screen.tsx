@@ -11,8 +11,8 @@ import { useSession } from '@/features/session/session-provider'
 import { describeApiError } from '@/lib/api'
 import { SECONDS_PER_DAY, utcDay } from '@/lib/format'
 import { useNow } from '@/lib/use-now'
-import { EncounterCard } from './encounter-card'
 import type { EncounterView } from './encounter-view'
+import { Ticket } from './ticket'
 import { useEncounters } from './use-encounters'
 
 type Section = { title: string; data: EncounterView[] }
@@ -28,7 +28,7 @@ function dayTitle(day: number, today: number): string {
   })
 }
 
-function Placeholder() {
+function LoadingTickets() {
   return (
     <View style={styles.list} accessibilityLabel="Loading encounters">
       {[0, 1, 2].map((i) => (
@@ -56,10 +56,10 @@ export function EncountersScreen() {
 
   const header = (
     <View style={styles.header}>
-      <T v="headline">Encounters</T>
+      <T v="hero">Encounters</T>
       {views.length > 0 ? (
-        <T v="mono" c="inkDim" tabular>
-          {views.length} {views.length === 1 ? 'person' : 'people'} passed
+        <T v="label" c="text2">
+          {views.length} {views.length === 1 ? 'ticket' : 'tickets'} kept
         </T>
       ) : null}
     </View>
@@ -69,17 +69,20 @@ export function EncountersScreen() {
   if (status !== 'signed-in') {
     empty =
       status === 'loading' ? null : (
-        <SignInPrompt reason="Connect to see everyone you have passed, and to wave at them." />
+        <View style={styles.message}>
+          <T v="title">Your tickets are kept here.</T>
+          <SignInPrompt reason="Connect to see everyone you have passed, and to wave at them." />
+        </View>
       )
   } else if (query.isPending) {
-    empty = <Placeholder />
+    empty = <LoadingTickets />
   } else if (query.isError) {
     empty = (
       <View style={styles.message}>
-        <T v="bodyStrong" c="warn">
-          Could not load your encounters
+        <T v="title" c="warn">
+          Your tickets did not load.
         </T>
-        <T v="body" c="inkDim">
+        <T v="body" c="text2">
           {describeApiError(query.error)}
         </T>
         <Button label="Try again" variant="secondary" onPress={() => query.refetch()} />
@@ -88,11 +91,11 @@ export function EncountersScreen() {
   } else if (views.length === 0) {
     empty = (
       <View style={styles.message}>
-        <T v="title">No one yet</T>
-        <T v="body" c="inkDim">
-          Open the radar and walk. The first Seeker you pass will show up here, ready to wave at.
+        <T v="title">Nobody under the lamps yet.</T>
+        <T v="body" c="text2">
+          Open the street and walk. The first Seeker you pass is kept here as a ticket, ready to wave at.
         </T>
-        <Button label="Open the radar" onPress={() => router.navigate('/')} />
+        <Button label="Open the street" onPress={() => router.navigate('/')} />
       </View>
     )
   }
@@ -105,20 +108,20 @@ export function EncountersScreen() {
         keyExtractor={(v) => v.record.address}
         stickySectionHeadersEnabled={false}
         contentContainerStyle={{
-          paddingTop: insets.top + space.md,
+          paddingTop: insets.top + space.lg,
           paddingHorizontal: space.xl,
-          paddingBottom: space.huge,
+          paddingBottom: space.giant,
         }}
         ListHeaderComponent={header}
         ListEmptyComponent={empty}
         renderSectionHeader={({ section }) => (
-          <T v="label" c="inkDim" style={styles.sectionTitle}>
+          <T v="label" c="text3" style={styles.sectionTitle}>
             {section.title}
           </T>
         )}
         renderItem={({ item }) => (
           <View style={styles.item}>
-            <EncounterCard view={item} nowMs={nowMs} />
+            <Ticket view={item} />
           </View>
         )}
         refreshControl={
@@ -126,9 +129,9 @@ export function EncountersScreen() {
             <RefreshControl
               refreshing={query.isRefetching}
               onRefresh={() => query.refetch()}
-              tintColor={color.signal}
-              colors={[color.signal]}
-              progressBackgroundColor={color.surfaceRaised}
+              tintColor={color.sodium}
+              colors={[color.sodium]}
+              progressBackgroundColor={color.night2}
             />
           ) : undefined
         }
@@ -139,17 +142,11 @@ export function EncountersScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: color.ground },
-  header: { gap: space.xs, marginBottom: space.lg },
-  sectionTitle: { marginTop: space.lg, marginBottom: space.sm },
+  root: { flex: 1, backgroundColor: color.night },
+  header: { gap: space.sm, marginBottom: space.md },
+  sectionTitle: { marginTop: space.xl, marginBottom: space.md },
   item: { marginBottom: space.md },
   list: { gap: space.md },
-  ghost: {
-    height: 92,
-    borderRadius: radius.lg,
-    backgroundColor: color.surface,
-    borderWidth: 1,
-    borderColor: color.line,
-  },
-  message: { gap: space.md, paddingTop: space.lg },
+  ghost: { height: 104, borderRadius: radius.ticket, backgroundColor: color.night2 },
+  message: { gap: space.lg, paddingTop: space.xl },
 })

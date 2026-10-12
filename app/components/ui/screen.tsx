@@ -4,10 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { StatusBar } from 'expo-status-bar'
 import { color, space } from '@/constants/theme'
 
-type Props = PropsWithChildren<{ refreshControl?: React.ReactElement<RefreshControlProps> }>
+type Props = PropsWithChildren<{ refreshControl?: React.ReactElement<RefreshControlProps>; bleed?: boolean }>
 
-/** Night ground with safe-area padding. Scrolls, so nothing clips on a short phone. */
-export function Screen({ children, refreshControl }: Props) {
+/** Night ground with safe-area padding. Scrolls, so nothing clips on a short phone. `bleed` drops the side padding. */
+export function Screen({ children, refreshControl, bleed }: Props) {
   const insets = useSafeAreaInsets()
   return (
     <View style={styles.root}>
@@ -15,9 +15,9 @@ export function Screen({ children, refreshControl }: Props) {
       <ScrollView
         refreshControl={refreshControl}
         contentContainerStyle={{
-          paddingTop: insets.top + space.md,
-          paddingHorizontal: space.xl,
-          paddingBottom: space.huge,
+          paddingTop: insets.top + space.lg,
+          paddingHorizontal: bleed ? 0 : space.xl,
+          paddingBottom: space.giant,
         }}
         showsVerticalScrollIndicator={false}
       >
@@ -27,4 +27,4 @@ export function Screen({ children, refreshControl }: Props) {
   )
 }
 
-const styles = StyleSheet.create({ root: { flex: 1, backgroundColor: color.ground } })
+const styles = StyleSheet.create({ root: { flex: 1, backgroundColor: color.night } })
