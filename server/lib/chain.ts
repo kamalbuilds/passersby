@@ -146,6 +146,32 @@ export function decodeProfile(addr: string, bytes: Uint8Array): ProfileJson {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+type Rpc = ReturnType<typeof createSolanaRpc>;
+
+/** Signs with `payer`, sends, and polls until the signature is confirmed or failed on-chain. */
+export async function sendInstructions(rpc: Rpc, payer: KeyPairSigner, ixs: Instruction[], timeoutMs = 60_000): Promise<string> {
+  const { value: blockhash } = await rpc.getLatestBlockhash({ commitment: "confirmed" }).send();
+  const tx = await pipe(
+    createTransactionMessage({ version: 0 }),
+    (m) => setTransactionMessageFeePayerSigner(payer, m),
+    (m) => setTransactionMessageLifetimeUsingBlockhash(blockhash, m),
+    (m) => appendTransactionMessageInstructions(ixs, m),
+    (m) => signTransactionMessageWithSigners(m),
+  );
+  const signature = await rpc
+    .sendTransaction(getBase64EncodedWireTransaction(tx), { encoding: "base64", preflightCommitment: "confirmed" })
+    .send();
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const { value } = await rpc.getSignatureStatuses([signature]).send();
+    const s = value[0];
+    if (s?.err) throw new Error(`transaction ${signature} failed: ${JSON.stringify(s.err, (_k, v) => (typeof v === "bigint" ? v.toString() : v))}`);
+    if (s && (s.confirmationStatus === "confirmed" || s.confirmationStatus === "finalized")) return signature;
+    await sleep(700);
+  }
+  throw new Error(`transaction ${signature} not confirmed within ${timeoutMs}ms`);
+}
+
 export class Chain {
   readonly rpc;
   private constructor(
@@ -275,40 +301,16 @@ export class Chain {
       data,
     };
 
-    const { value: blockhash } = await this.rpc.getLatestBlockhash({ commitment: "confirmed" }).send();
-    const tx = await pipe(
-      createTransactionMessage({ version: 0 }),
-      (m) => setTransactionMessageFeePayerSigner(this.relayer, m),
-      (m) => setTransactionMessageLifetimeUsingBlockhash(blockhash, m),
-      (m) => appendTransactionMessageInstructions([edIx, recordIx], m),
-      (m) => signTransactionMessageWithSigners(m),
-    );
-
     let signature: string;
     try {
-      signature = await this.rpc
-        .sendTransaction(getBase64EncodedWireTransaction(tx), { encoding: "base64", preflightCommitment: "confirmed" })
-        .send();
+      signature = await sendInstructions(this.rpc, this.relayer, [edIx, recordIx]);
     } catch (e) {
       const raced = await this.getEncounter(encounter);
       if (raced) return { signature: null, encounter: raced };
       throw e;
     }
-    await this.waitConfirmed(signature);
     const written = await this.getEncounter(encounter);
     if (!written) throw new Error(`transaction ${signature} confirmed but Encounter account not found`);
     return { signature, encounter: written };
-  }
-
-  private async waitConfirmed(signature: string, timeoutMs = 60_000) {
-    const deadline = Date.now() + timeoutMs;
-    while (Date.now() < deadline) {
-      const { value } = await this.rpc.getSignatureStatuses([signature as never]).send();
-      const s = value[0];
-      if (s?.err) throw new Error(`transaction ${signature} failed: ${JSON.stringify(s.err, (_k, v) => (typeof v === "bigint" ? v.toString() : v))}`);
-      if (s && (s.confirmationStatus === "confirmed" || s.confirmationStatus === "finalized")) return;
-      await sleep(700);
-    }
-    throw new Error(`transaction ${signature} not confirmed within ${timeoutMs}ms`);
   }
 }
