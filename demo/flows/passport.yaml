@@ -1,0 +1,8 @@
+# Open the passport tab. Env: WHO, SHOTS.
+appId: xyz.passersby.app
+---
+- tapOn: "Passport"
+- extendedWaitUntil:
+    visible: "Day streak"
+    timeout: 60000
+- takeScreenshot: ${SHOTS}/${WHO}_10_passport

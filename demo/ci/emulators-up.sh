@@ -42,7 +42,22 @@ wait_boot() { # wait_boot <port> <a|b>
   done
   timeout 30 adb -s "$s" shell cmd bluetooth_manager enable || true
   timeout 90 adb -s "$s" shell cmd bluetooth_manager wait-for-state:STATE_ON || echo "$s: bluetooth did not reach STATE_ON in 90 s"
+  timeout 20 adb -s "$s" shell settings put global hide_error_dialogs 1 # two software-rendered emulators starve System UI into an ANR dialog that blocks every tap
   echo "$(date +%T) $s up, bluetooth_on=$(timeout 20 adb -s "$s" shell settings get global bluetooth_on | tr -d '\r')"
 }
 wait_boot 5554 a
 wait_boot 5556 b
+
+# Let first-boot work (dexopt, Play services) drain before any flow runs: a busy System UI misses its ANR deadline.
+settle() { # settle <serial>: wait for the 1-minute load average to drop under 3.5
+  local t=$((SECONDS + 240)) l
+  while :; do
+    l=$(timeout 20 adb -s "$1" shell cat /proc/loadavg | cut -d' ' -f1)
+    echo "$(date +%T) $1 load $l"
+    awk -v l="${l:-99}" 'BEGIN{exit !(l < 3.5)}' && break
+    [ $SECONDS -lt $t ] || { echo "$1 still busy, continuing"; break; }
+    sleep 10
+  done
+}
+settle emulator-5554
+settle emulator-5556

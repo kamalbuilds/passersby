@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds solana-mobile/mock-mwa-wallet at a pinned commit into $GITHUB_WORKSPACE/mwallet.apk.
-# One source edit: the wallet's key store demands a fresh device credential every 15 minutes,
-# which a headless emulator without a lock screen cannot give, so the key is created without it.
+# One source edit: the wallet's key store demands a fresh device credential every 15 minutes, and a
+# two-emulator demo outlives that window, so the key is created without the requirement.
 set -euo pipefail
 REF=d444aff0c72dadd0f5c442ea2bc3559b62916e01
 OUT="${GITHUB_WORKSPACE:-$PWD}/mwallet.apk"

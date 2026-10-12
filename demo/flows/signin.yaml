@@ -2,26 +2,33 @@
 appId: xyz.passersby.app
 ---
 - launchApp
-- extendedWaitUntil:
-    visible: "Connect wallet"
-    timeout: 90000
-- takeScreenshot: ${SHOTS}/${WHO}_01_signed_out
-- tapOn: "Connect wallet"
-- extendedWaitUntil:
-    visible: "Connect|Sign In|Approve"
-    timeout: 120000
-- takeScreenshot: ${SHOTS}/${WHO}_02_wallet_sheet_one
-- tapOn: "Connect|Sign In|Approve"
-- extendedWaitUntil:
-    visible: "Approve|Sign In|Quiet street.*|.*within reach"
-    timeout: 120000
 - runFlow:
     when:
-      visible: "Approve|Sign In"
+      visible: "System UI isn't responding"
     commands:
-      - takeScreenshot: ${SHOTS}/${WHO}_03_wallet_sheet_two
-      - tapOn: "Approve|Sign In"
+      - tapOn: "Wait"
+- extendedWaitUntil:
+    visible: "Connect wallet"
+    timeout: 120000
+- takeScreenshot: ${SHOTS}/${WHO}_01_signed_out
+- tapOn: "Connect wallet"
+# wallet: authorize the app
+- extendedWaitUntil:
+    visible:
+      id: '.*btn_connect'
+    timeout: 120000
+- takeScreenshot: ${SHOTS}/${WHO}_02_wallet_authorize
+- tapOn:
+    id: '.*btn_connect'
+# wallet: sign the sign-in message
+- extendedWaitUntil:
+    visible:
+      id: '.*btn_approve'
+    timeout: 120000
+- takeScreenshot: ${SHOTS}/${WHO}_03_wallet_sign_message
+- tapOn:
+    id: '.*btn_approve'
 - extendedWaitUntil:
     visible: "Quiet street.*|.*within reach"
-    timeout: 90000
+    timeout: 120000
 - takeScreenshot: ${SHOTS}/${WHO}_04_radar_live

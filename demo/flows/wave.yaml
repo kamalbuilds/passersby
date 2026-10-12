@@ -1,4 +1,4 @@
-# Wave SKR at the person on the first ticket. Env: WHO, SHOTS.
+# Wave 5 SKR at the person on the first ticket. Env: WHO, SHOTS.
 appId: xyz.passersby.app
 ---
 - tapOn: "Encounters"
@@ -7,16 +7,19 @@ appId: xyz.passersby.app
     timeout: 120000
 - tapOn: "Wave"
 - extendedWaitUntil:
-    visible: "Wave 1 SKR|1"
+    visible: "Wave 5 SKR"
     timeout: 30000
 - takeScreenshot: ${SHOTS}/${WHO}_07_wave_amounts
-- tapOn: "Wave 1 SKR|1"
+- tapOn: "Wave 5 SKR"
+# wallet: approve the transfer
 - extendedWaitUntil:
-    visible: "Approve|Send.*|Sign.*"
+    visible:
+      id: '.*btn_approve'
     timeout: 180000
 - takeScreenshot: ${SHOTS}/${WHO}_08_wave_wallet_sheet
-- tapOn: "Approve|Send.*|Sign.*"
+- tapOn:
+    id: '.*btn_approve'
 - extendedWaitUntil:
-    visible: "Waved 1 SKR"
+    visible: "Waved 5 SKR"
     timeout: 240000
 - takeScreenshot: ${SHOTS}/${WHO}_09_waved

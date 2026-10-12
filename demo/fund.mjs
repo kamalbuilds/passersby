@@ -1,4 +1,4 @@
-// Usage: CI_FUNDER_KEYPAIR='[...64 bytes...]' node fund.mjs <walletA> <walletB>
+// Usage: CI_FUNDER_KEYPAIR='[...64 bytes...]' node fund.mjs <walletA> [walletB]
 // Sends 0.05 SOL to each wallet and 20 SKR (devnet) to wallet A, creating its token account.
 // Reads the funder key from the environment only and prints public data only.
 import {
@@ -27,7 +27,7 @@ const SOL_EACH = 50_000_000n
 const SKR_TO_A = 20n
 
 const [walletA, walletB] = process.argv.slice(2).map(address)
-if (!walletA || !walletB) throw new Error('usage: node fund.mjs <walletA> <walletB>')
+if (!walletA) throw new Error('usage: node fund.mjs <walletA> [walletB]')
 const raw = process.env.CI_FUNDER_KEYPAIR
 if (!raw) throw new Error('CI_FUNDER_KEYPAIR is not set')
 
@@ -65,7 +65,7 @@ const solTransfer = (to) => ({
 })
 const instructions = [
   solTransfer(walletA),
-  solTransfer(walletB),
+  ...(walletB ? [solTransfer(walletB)] : []),
   {
     programAddress: ATA_PROGRAM,
     accounts: [
@@ -126,8 +126,8 @@ for (let attempt = 1; attempt <= 4 && !signature; attempt++) {
   }
 }
 
-const post = { solA: await sol(walletA), solB: await sol(walletB), skrA: await tokenBalance(ataA) }
+const post = { solA: await sol(walletA), solB: walletB ? await sol(walletB) : SOL_EACH, skrA: await tokenBalance(ataA) }
 console.log(`funding tx ${signature}`)
 console.log(`A ${walletA} sol ${Number(post.solA) / 1e9} skr ${Number(post.skrA) / 10 ** decimals}`)
-console.log(`B ${walletB} sol ${Number(post.solB) / 1e9}`)
+if (walletB) console.log(`B ${walletB} sol ${Number(post.solB) / 1e9}`)
 if (post.solA < SOL_EACH || post.solB < SOL_EACH || post.skrA < amount) throw new Error('post-condition failed: balances below the funded amounts')
