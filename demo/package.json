@@ -1,8 +1,0 @@
-{
-  "name": "passersby-demo",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "@solana/kit": "^6.1.0"
-  }
-}
