@@ -95,13 +95,35 @@ struct Env {
     config: Pubkey,
 }
 
-fn setup() -> Env {
+fn program_data_pda() -> Pubkey {
+    Pubkey::find_program_address(&[passersby::ID.as_ref()], &solana_sdk::bpf_loader_upgradeable::ID).0
+}
+
+fn uninitialized() -> Env {
     let mut svm = LiteSVM::new();
     svm.add_program_from_file(passersby::ID, "../../target/deploy/passersby.so")
         .expect("run `anchor build` first");
     set_clock(&mut svm, T0);
     let admin = Keypair::new();
     let attestor = Keypair::new();
+    let loader = solana_sdk::bpf_loader_upgradeable::ID;
+    let elf = std::fs::read("../../target/deploy/passersby.so").unwrap();
+    let mut data = Vec::new();
+    data.extend_from_slice(&3u32.to_le_bytes());
+    data.extend_from_slice(&0u64.to_le_bytes());
+    data.push(1);
+    data.extend_from_slice(admin.pubkey().as_ref());
+    data.extend_from_slice(&elf);
+    svm.set_account(program_data_pda(), solana_sdk::account::Account {
+        lamports: svm.minimum_balance_for_rent_exemption(data.len()), data,
+        owner: loader, executable: false, rent_epoch: 0,
+    }).unwrap();
+    let mut data = 2u32.to_le_bytes().to_vec();
+    data.extend_from_slice(program_data_pda().as_ref());
+    svm.set_account(passersby::ID, solana_sdk::account::Account {
+        lamports: svm.minimum_balance_for_rent_exemption(data.len()), data,
+        owner: loader, executable: true, rent_epoch: 0,
+    }).unwrap();
     svm.airdrop(&admin.pubkey(), 100_000_000_000).unwrap();
 
     let mint = Pubkey::new_unique();
@@ -120,14 +142,40 @@ fn setup() -> Env {
     put_account(&mut svm, mint, data);
 
     let config = Pubkey::find_program_address(&[b"config"], &passersby::ID).0;
-    let ix = Instruction {
-        program_id: passersby::ID,
-        accounts: accounts::InitConfig { admin: admin.pubkey(), config, system_program: system_program::ID }
-            .to_account_metas(None),
-        data: instruction::InitConfig { attestor: attestor.pubkey(), skr_mint: mint }.data(),
-    };
-    send(&mut svm, &admin, &[ix]).unwrap();
     Env { svm, admin, attestor, mint, config }
+}
+
+fn init_ix(e: &Env, admin: Pubkey) -> Instruction {
+    Instruction {
+        program_id: passersby::ID,
+        accounts: accounts::InitConfig {
+            admin, config: e.config, system_program: system_program::ID,
+            program: passersby::ID, program_data: program_data_pda(),
+        }
+            .to_account_metas(None),
+        data: instruction::InitConfig { attestor: e.attestor.pubkey(), skr_mint: e.mint }.data(),
+    }
+}
+
+fn setup() -> Env {
+    let mut e = uninitialized();
+    let ix = init_ix(&e, e.admin.pubkey());
+    send(&mut e.svm, &e.admin, &[ix]).unwrap();
+    e
+}
+
+#[test]
+fn config_initialization_rejects_non_upgrade_authority() {
+    let mut e = uninitialized();
+    let attacker = Keypair::new();
+    e.svm.airdrop(&attacker.pubkey(), 10_000_000_000).unwrap();
+    let ix = init_ix(&e, attacker.pubkey());
+    let result = send(&mut e.svm, &attacker, &[ix]);
+    let f = result.expect_err("attacker initialized the global trust root");
+    assert_eq!(custom(&f), Some(code(PassersbyError::NotAdmin)), "{:?}", f.err);
+    assert!(e.svm.get_account(&e.config).is_none());
+    let ix = init_ix(&e, e.admin.pubkey());
+    send(&mut e.svm, &e.admin, &[ix]).unwrap();
 }
 
 struct Party {
@@ -593,4 +641,20 @@ fn set_attestor_is_admin_only_and_rotates_trust() {
     let f = record(&mut e, &r).unwrap_err();
     assert_eq!(custom(&f), Some(code(PassersbyError::WrongAttestor)), "{:?}", f.err);
     record_signed_by(&mut e, &r, &new_att, &r).unwrap();
+}
+
+#[test]
+fn config_initialization_rejects_substituted_program_data() {
+    let mut e = uninitialized();
+    let attacker = Keypair::new();
+    e.svm.airdrop(&attacker.pubkey(), 10_000_000_000).unwrap();
+    let fake = Pubkey::new_unique();
+    let mut account = e.svm.get_account(&program_data_pda()).unwrap();
+    account.data[13..45].copy_from_slice(attacker.pubkey().as_ref());
+    e.svm.set_account(fake, account).unwrap();
+    let mut ix = init_ix(&e, attacker.pubkey());
+    ix.accounts[4].pubkey = fake;
+    let f = send(&mut e.svm, &attacker, &[ix]).unwrap_err();
+    assert_eq!(custom(&f), Some(code(PassersbyError::NotAdmin)), "{:?}", f.err);
+    assert!(e.svm.get_account(&e.config).is_none());
 }

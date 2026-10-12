@@ -28,3 +28,12 @@ test("sightings expire after 15 minutes", () => {
   s2.observe("A", "B", 100, T);
   assert.equal(s2.observe("B", "A", 100, T + SIGHTING_TTL_MS - 1), true);
 });
+
+test("sighting memory is bounded and capacity cannot create a mutual match", () => {
+  const s = new SightingStore();
+  for (let i = 0; i < 10_000; i++) s.observe(`A${i}`, "B", 100, T);
+  assert.equal(s.observe("B", "A0", 100, T), false, "new direction rejected at capacity");
+  assert.equal((s as unknown as { seen: Map<string, unknown> }).seen.size, 10_000);
+  assert.equal(s.observe("B", "A0", 100, T + SIGHTING_TTL_MS + 1), false, "expired reverse is gone");
+  assert.equal(s.observe("A0", "B", 100, T + SIGHTING_TTL_MS + 2), true, "capacity recovers after expiry");
+});

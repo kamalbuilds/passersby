@@ -8,7 +8,7 @@ import {
   verifyWalletSignature,
   type Session,
 } from "./lib/auth";
-import { BeaconRegistry } from "./lib/beacon";
+import { BeaconCapacityError, BeaconRegistry } from "./lib/beacon";
 import { Chain, DEFAULT_DEVNET_RPC, DEFAULT_PROGRAM_ID } from "./lib/chain";
 import { createSightingProcessor, type Sighting } from "./lib/sightings";
 import { DEFAULT_RPC, lookupSgt } from "./lib/sgt";
@@ -120,6 +120,7 @@ async function main() {
   });
   processSightings = createSightingProcessor({
     registry,
+    budgetPath: process.env.RELAY_BUDGET_PATH || ".relay-budget.json",
     store: new SightingStore(),
     confirm: (a, b, nowMs) => chain.confirmEncounter(a, b, nowMs),
     onError: (e) => console.error("confirm failed:", (e as Error).message),
@@ -147,6 +148,7 @@ async function main() {
           throw new HttpError(404, "not_found");
       }
     } catch (e) {
+      if (e instanceof BeaconCapacityError) return send(res, 503, { error: "beacon_capacity" });
       if (e instanceof HttpError) return send(res, e.status, { error: e.code });
       console.error("unhandled:", (e as Error).message);
       return send(res, 500, { error: "internal" });

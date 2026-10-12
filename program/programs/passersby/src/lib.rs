@@ -266,6 +266,10 @@ pub struct InitConfig<'info> {
     #[account(init, payer = admin, space = 8 + Config::INIT_SPACE, seeds = [b"config"], bump)]
     pub config: Account<'info, Config>,
     pub system_program: Program<'info, System>,
+    #[account(constraint = program.programdata_address()? == Some(program_data.key()) @ PassersbyError::NotAdmin)]
+    pub program: Program<'info, crate::program::Passersby>,
+    #[account(constraint = program_data.upgrade_authority_address == Some(admin.key()) @ PassersbyError::NotAdmin)]
+    pub program_data: Account<'info, ProgramData>,
 }
 
 #[derive(Accounts)]

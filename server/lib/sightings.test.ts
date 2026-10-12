@@ -77,3 +77,80 @@ test("a failed confirmation is retried by the next batch", async () => {
   assert.equal(retry.length, 1);
   assert.equal(calls.length, 2);
 });
+
+
+test("relayer has a global daily attempt budget including failed attempts", async () => {
+  const registry = new BeaconRegistry("test-secret-0123456789");
+  let calls = 0;
+  const proc = createSightingProcessor({ registry, store: new SightingStore(),
+    confirm: async () => { calls++; throw new Error("transaction failed after charging fee"); } });
+  const ta = registry.issue(A, T).token;
+  const tb = registry.issue(B, T).token;
+  const sight = (token: string, at: number) => [{ token, rssi: -60, at }];
+  await proc(A, sight(tb, T), T);
+  for (let i = 0; i < 105; i++) await proc(B, sight(ta, T), T);
+  assert.equal(calls, 100, "failures must consume the budget and retries must stop");
+  const tomorrow = T + 86_400_000;
+  const ta2 = registry.issue(A, tomorrow).token;
+  const tb2 = registry.issue(B, tomorrow).token;
+  await proc(A, sight(tb2, tomorrow), tomorrow);
+  await proc(B, sight(ta2, tomorrow), tomorrow);
+  assert.equal(calls, 101, "budget resets on the next UTC day");
+});
+
+test("Sybil pairs share the global relay budget", async () => {
+  const { getBase58Decoder } = await import("@solana/kit");
+  const registry = new BeaconRegistry("test-secret-0123456789");
+  let calls = 0;
+  const proc = createSightingProcessor({ registry, store: new SightingStore(),
+    confirm: async () => { calls++; return { signature: "sig", encounter: { address: "enc" } as never }; } });
+  const ta = registry.issue(A, T).token;
+  for (let i = 1; i <= 105; i++) {
+    const bytes = new Uint8Array(32);
+    bytes[0] = i;
+    const identity = getBase58Decoder().decode(bytes);
+    const peer: Peer = { identity, wallet: identity, tier: "wallet" };
+    const tb = registry.issue(peer, T).token;
+    await proc(A, [{ token: tb, rssi: -60, at: T }], T);
+    const out = await proc(peer, [{ token: ta, rssi: -60, at: T }], T);
+    assert.equal(out.length, i <= 100 ? 1 : 0);
+  }
+  assert.equal(calls, 100);
+});
+
+test("relay budget survives a processor restart and rejects corrupt state", async () => {
+  const { mkdtempSync, rmSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const dir = mkdtempSync(join(tmpdir(), "relay-budget-"));
+  const budgetPath = join(dir, "budget.json");
+  try {
+    const registry = new BeaconRegistry("test-secret-0123456789");
+    const ta = registry.issue(A, T).token;
+    const tb = registry.issue(B, T).token;
+    let calls = 0;
+    const deps = { registry, budgetPath, confirm: async () => { calls++; throw new Error("failed"); } };
+    let proc = createSightingProcessor({ ...deps, store: new SightingStore() });
+    const sight = (token: string) => [{ token, rssi: -60, at: T }];
+    await proc(A, sight(tb), T);
+    for (let i = 0; i < 60; i++) await proc(B, sight(ta), T);
+    proc = createSightingProcessor({ ...deps, store: new SightingStore() });
+    await proc(A, sight(tb), T);
+    for (let i = 0; i < 60; i++) await proc(B, sight(ta), T);
+    assert.equal(calls, 100);
+    writeFileSync(budgetPath, JSON.stringify({ day: 0, attempts: -1 }));
+    assert.throws(() => createSightingProcessor({ ...deps, store: new SightingStore() }), /invalid relay budget/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("different identities on the same wallet cannot self-confirm", async () => {
+  const { registry, calls, proc, sight } = rig();
+  const alias = { ...B, wallet: A.wallet };
+  const ta = registry.issue(A, T).token;
+  const tb = registry.issue(alias, T).token;
+  assert.deepEqual(await proc(A, sight(tb), T), []);
+  assert.deepEqual(await proc(alias, sight(ta), T), []);
+  assert.equal(calls.length, 0);
+});

@@ -1,3 +1,4 @@
+import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dayOf, SightingStore } from "./store";
 import type { BeaconRegistry, Peer } from "./beacon";
 import type { Confirmation } from "./chain";
@@ -17,10 +18,28 @@ export function createSightingProcessor(deps: {
   store: SightingStore;
   confirm: Confirm;
   onError?: (e: unknown) => void;
+  budgetPath?: string;
 }) {
   const pairs = new Map<string, Promise<Confirmation>>();
+  let budgetDay = -1;
+  let attempts = 0;
+  if (deps.budgetPath && existsSync(deps.budgetPath)) {
+    const saved = JSON.parse(readFileSync(deps.budgetPath, "utf8"));
+    if (!Number.isSafeInteger(saved.day) || saved.day < 0 ||
+        !Number.isSafeInteger(saved.attempts) || saved.attempts < 0 || saved.attempts > 100) {
+      throw new Error("invalid relay budget");
+    }
+    budgetDay = saved.day;
+    attempts = saved.attempts;
+  }
 
   return async function process(observer: Peer, sightings: Sighting[], nowMs: number): Promise<Confirmed[]> {
+    const day = dayOf(nowMs);
+    if (day > budgetDay) {
+      pairs.clear();
+      budgetDay = day;
+      attempts = 0;
+    }
     const out: Confirmed[] = [];
     const done = new Set<string>();
     for (const s of sightings) {
@@ -33,9 +52,17 @@ export function createSightingProcessor(deps: {
       done.add(key);
       let p = pairs.get(key);
       if (!p) {
-        p = deps.confirm(observer, { identity: seen.identity, wallet: seen.wallet, tier: seen.tier }, nowMs);
+        if (day !== budgetDay || attempts >= 100) continue;
+        // shortcut: one relayer process per budget file, use a shared atomic budget before scaling.
+        attempts++;
+        if (deps.budgetPath) {
+          writeFileSync(`${deps.budgetPath}.tmp`, JSON.stringify({ day: budgetDay, attempts }), { mode: 0o600 });
+          renameSync(`${deps.budgetPath}.tmp`, deps.budgetPath);
+        }
+        p = Promise.resolve().then(() => deps.confirm(observer, { identity: seen.identity, wallet: seen.wallet, tier: seen.tier }, nowMs));
         pairs.set(key, p);
-        p.catch(() => pairs.delete(key));
+        const pending = p;
+        p.catch(() => { if (pairs.get(key) === pending) pairs.delete(key); });
       }
       try {
         const c = await p;

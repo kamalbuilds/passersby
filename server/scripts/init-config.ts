@@ -12,6 +12,8 @@ async function main() {
   const programAddress = address(process.env.PROGRAM_ID ?? DEFAULT_PROGRAM_ID);
   const enc = getAddressEncoder();
   const [config] = await getProgramDerivedAddress({ programAddress, seeds: [new TextEncoder().encode("config")] });
+  const loader = address("BPFLoaderUpgradeab1e11111111111111111111111");
+  const [programData] = await getProgramDerivedAddress({ programAddress: loader, seeds: [enc.encode(programAddress)] });
   const data = Buffer.concat([
     createHash("sha256").update("global:init_config").digest().subarray(0, 8),
     Buffer.from(enc.encode(address(attestor))),
@@ -24,6 +26,8 @@ async function main() {
         { address: admin.address, role: AccountRole.WRITABLE_SIGNER },
         { address: config, role: AccountRole.WRITABLE },
         { address: address("11111111111111111111111111111111"), role: AccountRole.READONLY },
+        { address: programAddress, role: AccountRole.READONLY },
+        { address: programData, role: AccountRole.READONLY },
       ],
       data,
     },

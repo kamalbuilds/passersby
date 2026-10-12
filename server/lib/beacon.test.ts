@@ -46,3 +46,18 @@ test("registry resolves current and previous epoch only", () => {
   assert.equal(r.resolve("00".repeat(16), start), null, "unknown token");
   assert.ok(r.resolve(token.toUpperCase(), start), "hex case is irrelevant");
 });
+
+test("beacon memory is bounded and recovers after expiry", async () => {
+  const { getBase58Decoder } = await import("@solana/kit");
+  const r = new BeaconRegistry(SECRET);
+  for (let i = 0; i < 10_000; i++) {
+    const bytes = Buffer.alloc(32);
+    bytes.writeUInt32LE(i + 1);
+    const identity = getBase58Decoder().decode(bytes);
+    r.issue({ identity, wallet: identity, tier: "wallet" }, T);
+  }
+  const peer = { identity: A, wallet: A, tier: "wallet" as const };
+  assert.throws(() => r.issue(peer, T), /capacity/);
+  assert.equal((r as unknown as { map: Map<string, unknown> }).map.size, 10_000);
+  assert.ok(r.issue(peer, T + 2 * EPOCH_SECONDS * 1000).token);
+});

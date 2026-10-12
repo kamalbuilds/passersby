@@ -47,6 +47,13 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "program",
+          "address": "H15pvqJFh7isY3fMX4oZe2ezZ8xjM4RZmv2uemQhv1g2"
+        },
+        {
+          "name": "program_data"
         }
       ],
       "args": [

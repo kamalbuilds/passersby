@@ -3,6 +3,7 @@ import { address, getAddressEncoder } from "@solana/kit";
 import type { Tier } from "./auth";
 
 export const EPOCH_SECONDS = 300;
+export class BeaconCapacityError extends Error {}
 
 export type Peer = { identity: string; wallet: string; tier: Tier };
 export type Beacon = { token: string; epoch: number; expiresAt: number };
@@ -29,6 +30,7 @@ export class BeaconRegistry {
     const epoch = epochOf(nowMs);
     this.prune(epoch);
     const token = beaconToken(this.secret, peer.identity, epoch);
+    if (!this.map.has(token) && this.map.size >= 10_000) throw new BeaconCapacityError("beacon capacity reached");
     this.map.set(token, { ...peer, epoch });
     return { token, epoch, expiresAt: (epoch + 1) * EPOCH_SECONDS };
   }

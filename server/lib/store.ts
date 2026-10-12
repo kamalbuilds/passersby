@@ -13,6 +13,7 @@ export class SightingStore {
   observe(observer: string, observed: string, epoch: number, nowMs: number): boolean {
     this.prune(nowMs);
     const key = `${observer}>${observed}`;
+    if (!this.seen.has(key) && this.seen.size >= 10_000) return false;
     const epochs = this.seen.get(key) ?? new Map<number, number>();
     epochs.set(epoch, nowMs);
     this.seen.set(key, epochs);
