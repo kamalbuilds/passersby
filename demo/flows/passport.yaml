@@ -6,3 +6,7 @@ appId: xyz.passersby.app
     visible: "Day streak"
     timeout: 60000
 - takeScreenshot: ${SHOTS}/${WHO}_10_passport
+- runScript:
+    file: pause.js
+    env:
+      MS: '4000'

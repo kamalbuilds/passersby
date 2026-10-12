@@ -11,6 +11,10 @@ appId: xyz.passersby.app
     visible: "Connect wallet"
     timeout: 120000
 - takeScreenshot: ${SHOTS}/${WHO}_01_signed_out
+- runScript:
+    file: pause.js
+    env:
+      MS: '3000'
 - tapOn: "Connect wallet"
 # wallet: authorize the app
 - extendedWaitUntil:
@@ -32,3 +36,7 @@ appId: xyz.passersby.app
     visible: "Quiet street.*|.*within reach"
     timeout: 120000
 - takeScreenshot: ${SHOTS}/${WHO}_04_radar_live
+- runScript:
+    file: pause.js
+    env:
+      MS: '5000'

@@ -23,3 +23,7 @@ appId: xyz.passersby.app
     visible: "Waved 5 SKR"
     timeout: 240000
 - takeScreenshot: ${SHOTS}/${WHO}_09_waved
+- runScript:
+    file: pause.js
+    env:
+      MS: '3000'

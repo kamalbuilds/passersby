@@ -6,3 +6,7 @@ appId: xyz.passersby.app
     visible: "Passed ·.*"
     timeout: 180000
 - takeScreenshot: ${SHOTS}/${WHO}_06_passed_ticket
+- runScript:
+    file: pause.js
+    env:
+      MS: '4000'

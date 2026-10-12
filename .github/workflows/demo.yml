@@ -8,6 +8,14 @@ on:
         type: choice
         options: [full, probe]
         default: full
+      two_emulators:
+        description: record with two emulators and BLE instead of one emulator and the second-identity HTTP encounter
+        type: boolean
+        default: false
+
+env:
+  MAESTRO_VERSION: cli-2.11.0
+  MAESTRO_SHA256: 5384593cb4e7a106489e75a821d157dd43f4e438df6bc308b72e82c685e1283a
 
 jobs:
   app-apk:
@@ -81,12 +89,15 @@ jobs:
     if: inputs.mode == 'full'
     needs: [app-apk, wallet-apk]
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 60
     env:
       MAESTRO_DRIVER_STARTUP_TIMEOUT: '240000'
       MAESTRO_CLI_NO_ANALYTICS: '1'
+      TWO_EMULATORS: ${{ inputs.two_emulators && '1' || '' }}
+      CI_FUNDER_KEYPAIR: ${{ secrets.CI_FUNDER_KEYPAIR }}
     steps:
-      - name: Free disk for two emulators (jlumbroso/free-disk-space v1.3.1, pinned)
+      - name: Free disk space for two emulators (jlumbroso/free-disk-space v1.3.1, pinned)
+        if: inputs.two_emulators
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be
         with:
           android: false
@@ -96,28 +107,48 @@ jobs:
           docker-images: true
           tool-cache: false
           swap-storage: true
-      - run: df -h /
       - uses: actions/checkout@v4
-      - run: bash demo/ci/enable-kvm.sh
       - uses: actions/download-artifact@v4
         with: { pattern: '*-apk', path: apks, merge-multiple: true }
       - run: ls -l apks
       - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: '17' }
+        with: { distribution: temurin, java-version: '21' }
       - uses: actions/setup-node@v4
         with: { node-version: '24' }
       - run: cd demo && npm ci --no-audit --no-fund
-      - name: Install Maestro 2.6.0 from its GitHub release
+      - name: Install Maestro
         run: |
-          curl -fsSL -o /tmp/maestro.zip https://github.com/mobile-dev-inc/maestro/releases/download/cli-2.6.0/maestro.zip
-          unzip -q /tmp/maestro.zip -d "$HOME/.maestro-cli"
-          echo "$HOME/.maestro-cli/maestro/bin" >> "$GITHUB_PATH"
-      - run: maestro --version
+          curl -fsSL "https://github.com/mobile-dev-inc/maestro/releases/download/${MAESTRO_VERSION}/maestro.zip" -o "$RUNNER_TEMP/maestro.zip"
+          echo "${MAESTRO_SHA256}  $RUNNER_TEMP/maestro.zip" | sha256sum -c -
+          unzip -q "$RUNNER_TEMP/maestro.zip" -d "$HOME"
+          echo "$HOME/maestro/bin" >> "$GITHUB_PATH"
       - run: sudo apt-get install -y -qq ffmpeg
-      - run: bash demo/ci/emulators-up.sh
-      - env:
-          CI_FUNDER_KEYPAIR: ${{ secrets.CI_FUNDER_KEYPAIR }}
+      - name: Free disk space for the emulator image
+        run: |
+          df -h /
+          rm -rf "$ANDROID_HOME/ndk" "$AGENT_TOOLSDIRECTORY"/CodeQL "$AGENT_TOOLSDIRECTORY"/Python "$AGENT_TOOLSDIRECTORY"/PyPy "$AGENT_TOOLSDIRECTORY"/go "$AGENT_TOOLSDIRECTORY"/Ruby
+          df -h /
+      - run: bash demo/ci/enable-kvm.sh
+      - name: Two emulators up
+        if: inputs.two_emulators
+        run: bash demo/ci/emulators-up.sh
+      - name: Record the demo (two emulators)
+        if: inputs.two_emulators
         run: bash demo/ci/run-demo.sh
+      - name: Record the demo (one emulator)
+        if: ${{ !inputs.two_emulators }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          ram-size: 3072M
+          disk-size: 3072M
+          disable-animations: false
+          emulator-boot-timeout: 600
+          emulator-options: -no-window -no-metrics -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -camera-front none
+          script: bash demo/ci/run-demo.sh
       - if: always()
         run: bash demo/ci/finish.sh
       - if: always()

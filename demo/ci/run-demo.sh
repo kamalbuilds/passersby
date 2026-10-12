@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# Drives the two-emulator demo. Every stage runs even when an earlier one failed, so one CI run
-# reports as much as it can; the exit code is nonzero if any stage failed.
+# Drives the demo. Default: ONE emulator (a 2-vCPU runner cannot keep two emulators and the mock wallet
+# responsive); the encounter is made by a second identity over the live server's HTTP API.
+# TWO_EMULATORS=1 keeps the BLE path on emulator-5554 and emulator-5556.
+# Every stage runs even when an earlier one failed, so one CI run reports as much as it can;
+# the exit code is nonzero if any stage failed.
 set -uo pipefail
 SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
 export PATH="$SDK/platform-tools:$PATH"
 A=emulator-5554
 B=emulator-5556
+SERIALS="$A"
+[ -n "${TWO_EMULATORS:-}" ] && SERIALS="$A $B"
 OUT="$PWD/out"
 SHOTS="$OUT/shots"
 mkdir -p "$SHOTS" "$OUT/video" "$OUT/logs" "$OUT/ui" "$OUT/maestro"
@@ -19,11 +24,11 @@ snap() { # snap <serial> <name>: screenshot plus UI tree, for stages that fail
 stage() {
   local name=$1; shift
   echo "::group::$name"
-  if "$@"; then echo "stage $name: ok"; else echo "::error::stage $name failed"; FAILED+=("$name"); snap $A "fail_${name}_a"; snap $B "fail_${name}_b"; fi
+  if "$@"; then echo "stage $name: ok"; else echo "::error::stage $name failed"; FAILED+=("$name"); snap $A "fail_${name}_a"; [ -n "${TWO_EMULATORS:-}" ] && snap $B "fail_${name}_b"; fi
   echo "::endgroup::"
 }
 flow() { # flow <serial> <who> <name>
-  timeout 900 maestro --device "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_$3" "$GITHUB_WORKSPACE/demo/flows/$3.yaml"
+  timeout 900 maestro --udid "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_$3" "$GITHUB_WORKSPACE/demo/flows/$3.yaml"
 }
 
 PIN=1234
@@ -43,7 +48,7 @@ unlock() { # unlock <serial>: setting a credential locks the device at once; wak
 }
 
 prepare() {
-  for s in $A $B; do
+  for s in $SERIALS; do
     adb -s $s install -r "$GITHUB_WORKSPACE/apks/app-release-x86_64.apk" >/dev/null || return 1
     adb -s $s install -r -g "$GITHUB_WORKSPACE/apks/mwallet.apk" >/dev/null || return 1
     for p in BLUETOOTH_SCAN BLUETOOTH_ADVERTISE BLUETOOTH_CONNECT POST_NOTIFICATIONS; do
@@ -54,6 +59,10 @@ prepare() {
     adb -s $s shell settings put global hide_error_dialogs 1
     adb -s $s shell settings put secure show_ime_with_hard_keyboard 0
     adb -s $s shell input keyevent 82
+    if [ -z "${TWO_EMULATORS:-}" ]; then
+      adb -s $s shell wm size 720x1600
+      adb -s $s shell wm density 280
+    fi
     unlock $s
     adb -s $s shell cmd bluetooth_manager enable || true
     adb -s $s shell cmd bluetooth_manager wait-for-state:STATE_ON || true
@@ -65,7 +74,7 @@ wallet_auth() { # wallet_auth <serial> <who>: authenticate the mock wallet once 
   adb -s "$1" logcat -G 16M
   adb -s "$1" logcat -c
   # run 38239605618 hung here for 10 minutes after the Authenticate assertion: bound it, and go on to the PIN, which the log check then proves or refutes
-  timeout 180 maestro --device "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_wallet-open" "$GITHUB_WORKSPACE/demo/flows/wallet-open.yaml"
+  timeout 180 maestro --udid "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_wallet-open" "$GITHUB_WORKSPACE/demo/flows/wallet-open.yaml"
   local rc=$?
   [ $rc -eq 0 ] || [ $rc -eq 124 ] || return 1
   sleep 3
@@ -99,9 +108,9 @@ record() { # record <serial> <label>: chained 170 s segments written on the devi
     > "$OUT/logs/record_$2.log" 2>&1 &
 }
 stop_record() {
-  for s in $A $B; do adb -s $s shell rm -f /data/local/tmp/rec.run; adb -s $s shell pkill -INT screenrecord; done
+  for s in $SERIALS; do adb -s $s shell rm -f /data/local/tmp/rec.run; adb -s $s shell pkill -INT screenrecord; done
   sleep 8
-  for pair in "$A a" "$B b"; do
+  for pair in "$A a" ${TWO_EMULATORS:+"$B b"}; do
     set -- $pair
     for f in $(adb -s "$1" shell ls /data/local/tmp/ | tr -d '\r' | grep '^rec_.*mp4$'); do
       adb -s "$1" pull "/data/local/tmp/$f" "$OUT/video/${2}_$f" >/dev/null
@@ -110,14 +119,14 @@ stop_record() {
 }
 
 walletaddr() { # walletaddr <serial> <a|b>: last address the mock wallet logged on this device
-  grep -h -o 'keypair (add=[1-9A-HJ-NP-Za-km-z]\{32,44\}' "$OUT/logs/logcat_$2.txt" | tail -1 | sed 's/.*add=//'
+  { adb -s "$1" logcat -d -s MobileWalletAdapterViewModel; cat "$OUT/logs/logcat_$2.txt"; } | grep -o 'add=[1-9A-HJ-NP-Za-km-z]\{32,44\}' | tail -1 | sed 's/.*add=//'
 }
 
 addresses() { # A is required (the fallback and the wave need it); B only matters for two-emulator BLE
   sleep 3
-  WALLET_A=$(walletaddr $A a); WALLET_B=$(walletaddr $B b)
+  WALLET_A=$(walletaddr $A a); WALLET_B=; [ -n "${TWO_EMULATORS:-}" ] && WALLET_B=$(walletaddr $B b)
   echo "wallet A $WALLET_A"; echo "wallet B $WALLET_B"
-  [ -n "$WALLET_A" ] && [ "$WALLET_A" != "$WALLET_B" ]
+  [ -n "$WALLET_A" ] && { [ -z "${TWO_EMULATORS:-}" ] || [ "$WALLET_A" != "$WALLET_B" ]; }
 }
 
 fund() {
@@ -125,8 +134,11 @@ fund() {
 }
 
 session_of_a() { # reads the signed-in session out of app A's storage; the token is passed on in memory only
-  adb -s $A pull /data/data/$APP/databases/RKStorage "$OUT/ui/RKStorage_a" >/dev/null 2>&1 || return 1
-  python3 - "$OUT/ui/RKStorage_a" <<'PY'
+  # AsyncStorage runs SQLite in WAL mode: the session can sit in the -wal file, so pull all three and let sqlite replay it
+  rm -rf "$OUT/ui/rk" && mkdir -p "$OUT/ui/rk"
+  for f in RKStorage RKStorage-wal RKStorage-shm; do adb -s $A pull "/data/data/$APP/databases/$f" "$OUT/ui/rk/$f" >/dev/null 2>&1; done
+  [ -s "$OUT/ui/rk/RKStorage" ] || return 1
+  python3 - "$OUT/ui/rk/RKStorage" <<'PY'
 import json, sqlite3, sys
 db = sqlite3.connect(sys.argv[1])
 row = db.execute("select value from catalystLocalStorage where key = ?", ("passersby.session.v1",)).fetchone()
@@ -137,17 +149,52 @@ PY
 fallback() {
   local tok
   tok=$(session_of_a) && [ -n "$tok" ] || return 1
+  snap $A radar_before_fallback
+  grep -q Broadcasting "$OUT/ui/radar_before_fallback.xml" 2>/dev/null && echo "radar text: Broadcasting present" || echo "radar text: Broadcasting NOT present"
   (cd "$GITHUB_WORKSPACE/demo" && W_SESSION="$tok" node fallback.mjs) | tee "$OUT/logs/fallback.txt"
 }
 
 ble_evidence() { # dumpsys snapshots under $TAG; the logcat streams already hold ReactNativeJS and bluetooth lines
-  for pair in "$A a" "$B b"; do
+  for pair in "$A a" ${TWO_EMULATORS:+"$B b"}; do
     set -- $pair
     adb -s "$1" shell dumpsys bluetooth_manager > "$OUT/logs/dumpsys_bt_${2}_$TAG.txt" 2>&1
   done
 }
 
-for s in $A $B; do adb -s $s root >/dev/null 2>&1; timeout 60 adb -s $s wait-for-device; done # the fallback reads app storage, and adbd restarts on root
+if [ -z "${TWO_EMULATORS:-}" ]; then
+for s in $SERIALS; do adb -s $s root >/dev/null 2>&1; timeout 60 adb -s $s wait-for-device; done # the fallback reads app storage, and adbd restarts on root
+sleep 3
+adb -s $A logcat -v threadtime > "$OUT/logs/logcat_a.txt" 2>&1 &
+stage prepare prepare
+watch_credential $A > "$OUT/logs/credential_a.txt" 2>&1 &
+stage wallet_auth_a wallet_auth $A a
+# record only after the wallet PIN step so the video opens on the app
+date +%s > "$OUT/rec_start.txt"
+record $A a
+sleep 4
+stage signin_a flow $A a signin
+stage addresses addresses
+stage fund fund
+stage fallback fallback
+stage passed_a_list flow $A a passed-list
+MODE=one-emulator-second-identity-over-http
+echo "$MODE" > "$OUT/MODE.txt"
+TAG=after_passed ble_evidence
+stage wave_a flow $A a wave
+stage passport_a flow $A a passport
+sleep 5
+snap $A final_a
+TAG=final ble_evidence
+
+stop_record
+# milestone times: epoch seconds, seconds into the recording (video t=0 is rec_start plus about 1 s of screenrecord start-up), screenshot
+find "$SHOTS" -name '*.png' -printf '%T@ %f\n' | sort -n | awk -v s="$(cat "$OUT/rec_start.txt")" '{printf "%s +%.1fs %s\n", $1, $1 - s, $2}' > "$OUT/shot_times.txt"
+pkill -f 'adb -s emulator-.* logcat' || true
+echo "failed stages: ${FAILED[*]:-none}"
+printf '%s\n' "${FAILED[@]:-}" > "$OUT/failed-stages.txt"
+[ ${#FAILED[@]} -eq 0 ]
+else
+for s in $SERIALS; do adb -s $s root >/dev/null 2>&1; timeout 60 adb -s $s wait-for-device; done # the fallback reads app storage, and adbd restarts on root
 sleep 3
 adb -s $A logcat -v threadtime > "$OUT/logs/logcat_a.txt" 2>&1 &
 adb -s $B logcat -v threadtime > "$OUT/logs/logcat_b.txt" 2>&1 &
@@ -192,3 +239,4 @@ pkill -f 'adb -s emulator-.* logcat' || true
 echo "failed stages: ${FAILED[*]:-none}"
 printf '%s\n' "${FAILED[@]:-}" > "$OUT/failed-stages.txt"
 [ ${#FAILED[@]} -eq 0 ]
+fi
