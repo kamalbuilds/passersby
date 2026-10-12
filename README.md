@@ -37,8 +37,8 @@ Nintendo's StreetPass proved people will carry a device around just to collect p
 
 Tests:
 
-- `program/`: 14 LiteSVM tests. They cover duplicate pairs on one day, streaks across days and gaps, foreign attestors, unsorted pairs, forged tier or wallet or timestamp claims, missing or misdirected Ed25519 instructions, exact wave amounts, and third parties trying to wave. Pulling the attestor check turns two of them red.
-- `server/`: 15 tests on beacon rotation, mutual confirmation, stale and self tokens, and retry after a failed relay.
+- `program/`: 17 LiteSVM tests. They cover config bootstrap by anyone other than the upgrade authority, duplicate pairs on one day, streaks across days and gaps, foreign attestors, unsorted pairs, forged tier or wallet or timestamp claims, missing or misdirected Ed25519 instructions, exact wave amounts, and third parties trying to wave. Pulling the attestor check turns two of them red.
+- `server/`: 22 tests on beacon rotation, mutual confirmation, stale and self tokens, retry after a failed relay, the daily relay budget and bounded sighting memory.
 - `app/`: the `wave` instruction layout against the program IDL.
 
 ## Run it
