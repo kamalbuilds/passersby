@@ -72,6 +72,22 @@ fund() {
   (cd "$GITHUB_WORKSPACE/demo" && node fund.mjs "$WALLET_A" "$WALLET_B") | tee "$OUT/logs/fund.txt"
 }
 
+session_of_a() { # reads the signed-in session out of app A's storage; the token is passed on in memory only
+  adb -s $A pull /data/data/$APP/databases/RKStorage "$OUT/ui/RKStorage_a" >/dev/null 2>&1 || return 1
+  python3 - "$OUT/ui/RKStorage_a" <<'PY'
+import json, sqlite3, sys
+db = sqlite3.connect(sys.argv[1])
+row = db.execute("select value from catalystLocalStorage where key = ?", ("passersby.session.v1",)).fetchone()
+print(json.loads(row[0])["sessionToken"])
+PY
+}
+
+fallback() {
+  local tok
+  tok=$(session_of_a) && [ -n "$tok" ] || return 1
+  (cd "$GITHUB_WORKSPACE/demo" && W_SESSION="$tok" node fallback.mjs) | tee "$OUT/logs/fallback.txt"
+}
+
 ble_evidence() { # dumpsys snapshots under $TAG; the logcat streams already hold ReactNativeJS and bluetooth lines
   for pair in "$A a" "$B b"; do
     set -- $pair
@@ -79,6 +95,8 @@ ble_evidence() { # dumpsys snapshots under $TAG; the logcat streams already hold
   done
 }
 
+for s in $A $B; do adb -s $s root >/dev/null 2>&1; timeout 60 adb -s $s wait-for-device; done # the fallback reads app storage, and adbd restarts on root
+sleep 3
 adb -s $A logcat -v threadtime > "$OUT/logs/logcat_a.txt" 2>&1 &
 adb -s $B logcat -v threadtime > "$OUT/logs/logcat_b.txt" 2>&1 &
 record $A a
@@ -91,8 +109,19 @@ stage signin_b flow $B b signin
 stage addresses addresses
 stage fund fund
 TAG=after_signin ble_evidence
+MODE=two-emulator-ble
 stage passed_a flow $A a passed
-stage passed_b flow $B b passed
+if [[ " ${FAILED[*]:-} " == *" passed_a "* ]]; then
+  echo "BLE: emulator A never showed a mutual encounter"
+  TAG=ble_failed ble_evidence
+  FAILED=($(printf '%s\n' "${FAILED[@]}" | grep -vx passed_a))
+  MODE=fallback-second-identity-over-http
+  stage fallback fallback
+  stage passed_a_list flow $A a passed-list
+else
+  stage passed_b flow $B b passed
+fi
+echo "$MODE" > "$OUT/MODE.txt"
 TAG=after_passed ble_evidence
 stage wave_a flow $A a wave
 sleep 5
