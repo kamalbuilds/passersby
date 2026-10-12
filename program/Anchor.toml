@@ -1,0 +1,19 @@
+[toolchain]
+anchor_version = "0.32.1"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.localnet]
+passersby = "H15pvqJFh7isY3fMX4oZe2ezZ8xjM4RZmv2uemQhv1g2"
+
+[programs.devnet]
+passersby = "H15pvqJFh7isY3fMX4oZe2ezZ8xjM4RZmv2uemQhv1g2"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test -p passersby -- --nocapture"

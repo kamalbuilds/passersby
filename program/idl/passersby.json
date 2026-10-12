@@ -1,0 +1,687 @@
+{
+  "address": "H15pvqJFh7isY3fMX4oZe2ezZ8xjM4RZmv2uemQhv1g2",
+  "metadata": {
+    "name": "passersby",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Proof of passing another Seeker owner"
+  },
+  "instructions": [
+    {
+      "name": "init_config",
+      "discriminator": [
+        23,
+        235,
+        115,
+        232,
+        168,
+        96,
+        1,
+        231
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "attestor",
+          "type": "pubkey"
+        },
+        {
+          "name": "skr_mint",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "record_encounter",
+      "discriminator": [
+        22,
+        168,
+        114,
+        79,
+        160,
+        193,
+        216,
+        145
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "lo_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "lo"
+              }
+            ]
+          }
+        },
+        {
+          "name": "hi_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "hi"
+              }
+            ]
+          }
+        },
+        {
+          "name": "encounter",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  110,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "lo"
+              },
+              {
+                "kind": "arg",
+                "path": "hi"
+              },
+              {
+                "kind": "arg",
+                "path": "day"
+              }
+            ]
+          }
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "lo",
+          "type": "pubkey"
+        },
+        {
+          "name": "hi",
+          "type": "pubkey"
+        },
+        {
+          "name": "lo_wallet",
+          "type": "pubkey"
+        },
+        {
+          "name": "hi_wallet",
+          "type": "pubkey"
+        },
+        {
+          "name": "lo_tier",
+          "type": "u8"
+        },
+        {
+          "name": "hi_tier",
+          "type": "u8"
+        },
+        {
+          "name": "day",
+          "type": "u32"
+        },
+        {
+          "name": "seen_at",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "set_attestor",
+      "discriminator": [
+        95,
+        11,
+        236,
+        157,
+        234,
+        146,
+        163,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true,
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "attestor",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "wave",
+      "discriminator": [
+        225,
+        175,
+        48,
+        85,
+        221,
+        5,
+        244,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "encounter",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  110,
+                  99,
+                  111,
+                  117,
+                  110,
+                  116,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "encounter.lo",
+                "account": "Encounter"
+              },
+              {
+                "kind": "account",
+                "path": "encounter.hi",
+                "account": "Encounter"
+              },
+              {
+                "kind": "account",
+                "path": "encounter.day",
+                "account": "Encounter"
+              }
+            ]
+          }
+        },
+        {
+          "name": "skr_mint",
+          "relations": [
+            "config"
+          ]
+        },
+        {
+          "name": "signer_token",
+          "writable": true
+        },
+        {
+          "name": "receiver"
+        },
+        {
+          "name": "receiver_token",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "receiver"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "skr_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "receiver_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "receiver_profile.identity",
+                "account": "Profile"
+              }
+            ]
+          }
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Config",
+      "discriminator": [
+        155,
+        12,
+        170,
+        224,
+        30,
+        250,
+        204,
+        130
+      ]
+    },
+    {
+      "name": "Encounter",
+      "discriminator": [
+        77,
+        233,
+        72,
+        135,
+        220,
+        110,
+        127,
+        166
+      ]
+    },
+    {
+      "name": "Profile",
+      "discriminator": [
+        184,
+        101,
+        165,
+        188,
+        95,
+        63,
+        127,
+        188
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "MathOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6001,
+      "name": "UnsortedPair",
+      "msg": "Identities must be sorted byte-wise with lo < hi"
+    },
+    {
+      "code": 6002,
+      "name": "SameWallet",
+      "msg": "The two wallets of an encounter must differ"
+    },
+    {
+      "code": 6003,
+      "name": "BadTier",
+      "msg": "Tier must be 0 (wallet) or 1 (seeker)"
+    },
+    {
+      "code": 6004,
+      "name": "BadTimestamp",
+      "msg": "seen_at must be non-negative"
+    },
+    {
+      "code": 6005,
+      "name": "DayMismatch",
+      "msg": "day must equal seen_at / 86400"
+    },
+    {
+      "code": 6006,
+      "name": "SeenAtOutOfRange",
+      "msg": "seen_at is more than one day from the clock"
+    },
+    {
+      "code": 6007,
+      "name": "MissingEd25519",
+      "msg": "Previous instruction is not an Ed25519 verify"
+    },
+    {
+      "code": 6008,
+      "name": "BadEd25519",
+      "msg": "Malformed Ed25519 instruction"
+    },
+    {
+      "code": 6009,
+      "name": "WrongAttestor",
+      "msg": "Attestation not signed by the configured attestor"
+    },
+    {
+      "code": 6010,
+      "name": "WrongMessage",
+      "msg": "Attestation message does not match the encounter"
+    },
+    {
+      "code": 6011,
+      "name": "NotAdmin",
+      "msg": "Only the admin may do this"
+    },
+    {
+      "code": 6012,
+      "name": "InvalidAmount",
+      "msg": "Wave amount must be at least 1"
+    },
+    {
+      "code": 6013,
+      "name": "NotParticipant",
+      "msg": "Signer is not a party to this encounter"
+    },
+    {
+      "code": 6014,
+      "name": "WrongReceiver",
+      "msg": "Receiver accounts do not match the other party of the encounter"
+    }
+  ],
+  "types": [
+    {
+      "name": "Config",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "attestor",
+            "type": "pubkey"
+          },
+          {
+            "name": "skr_mint",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Encounter",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "lo",
+            "type": "pubkey"
+          },
+          {
+            "name": "hi",
+            "type": "pubkey"
+          },
+          {
+            "name": "lo_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "hi_wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "day",
+            "type": "u32"
+          },
+          {
+            "name": "verified",
+            "type": "bool"
+          },
+          {
+            "name": "first_seen",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Profile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "identity",
+            "type": "pubkey"
+          },
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "tier",
+            "type": "u8"
+          },
+          {
+            "name": "encounters",
+            "type": "u32"
+          },
+          {
+            "name": "verified_encounters",
+            "type": "u32"
+          },
+          {
+            "name": "streak",
+            "type": "u16"
+          },
+          {
+            "name": "last_day",
+            "type": "u32"
+          },
+          {
+            "name": "waves_received",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    }
+  ]
+}
