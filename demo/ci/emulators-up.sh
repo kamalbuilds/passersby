@@ -4,7 +4,8 @@ set -euo pipefail
 SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
 export PATH="$SDK/cmdline-tools/latest/bin:$SDK/platform-tools:$SDK/emulator:$PATH"
 IMG="system-images;android-34;google_apis;x86_64"
-mkdir -p out
+mkdir -p out "$HOME/.android/avd"
+export ANDROID_USER_HOME="$HOME/.android" ANDROID_AVD_HOME="$HOME/.android/avd"
 set +o pipefail; yes | sdkmanager --licenses >/dev/null 2>&1; set -o pipefail
 sdkmanager --install emulator platform-tools "$IMG" | tail -3
 for n in a b; do
