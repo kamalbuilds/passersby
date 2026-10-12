@@ -5,7 +5,7 @@ appId: xyz.passersby.app
 - extendedWaitUntil:
     visible: "Passed ·.*"
     timeout: 180000
-- takeScreenshot: ${SHOTS}/${WHO}_06_passed_ticket
+- takeScreenshot: ${WHO}_06_passed_ticket
 - runScript:
     file: pause.js
     env:

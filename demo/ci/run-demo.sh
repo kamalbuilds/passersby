@@ -30,6 +30,10 @@ stage() {
 flow() { # flow <serial> <who> <name>
   ensure_unlocked "$1"
   timeout 900 maestro --udid "$1" test -e WHO="$2" -e SHOTS="$SHOTS" --test-output-dir "$OUT/maestro/$2_$3" "$GITHUB_WORKSPACE/demo/flows/$3.yaml"
+  local rc=$?
+  # Maestro 2.11 only writes screenshots inside its test output dir; gather them with their capture times
+  find "$OUT/maestro/$2_$3" -name '*.png' -exec cp -p {} "$SHOTS/" \;
+  return $rc
 }
 
 PIN=1234
