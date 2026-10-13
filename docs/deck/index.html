@@ -5,45 +5,33 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--night:#0B0E14;--night2:#121722;--night3:#1B2230;--line:#263042;--text:#F2EBDD;--text2:#A9A293;--text3:#6B6759;--sodium:#FFB547;--ink:#1A1206;--seeker:#7FE3C4}
+/* Hallmark · genre: atmospheric · theme: Sodium night (app/DESIGN.md) · macrostructure: street-film (ten distinct layouts) · enrichment: one street scene reused as the story · nav: none · footer: none */
+/* Hallmark · pre-emit critique: P5 H4 E5 S5 R4 V5 */
+:root{--night:#0B0E14;--night2:#121722;--night3:#1B2230;--line:#263042;--text:#F2EBDD;--text2:#A9A293;--text3:#6B6759;--sodium:#FFB547;--ink:#1A1206;--seeker:#7FE3C4;
+--display:'Space Grotesk',sans-serif;--mono:'JetBrains Mono',monospace}
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--night);height:100%;overflow:hidden;font-family:'Space Grotesk',sans-serif;color:var(--text)}
-.slide{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--s,1));background:var(--night);display:none;overflow:hidden;padding:120px 140px 130px}
+html,body{background:var(--night);height:100%;overflow:hidden;font-family:var(--display);color:var(--text)}
+.slide{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform:translate(-50%,-50%) scale(var(--s,1));background:var(--night);display:none;overflow:hidden}
 .slide.on{display:block}
-.pool{position:absolute;width:1100px;height:1100px;border-radius:50%;background:radial-gradient(circle,rgba(255,181,71,.16) 0%,rgba(255,181,71,.06) 40%,rgba(255,181,71,0) 70%);pointer-events:none}
-.street{position:absolute;left:0;right:0;bottom:84px;height:1px;background:var(--line)}
-.foot{position:absolute;left:140px;right:140px;bottom:36px;display:flex;justify-content:space-between;font:600 15px 'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
-.foot b{color:var(--sodium);font-weight:600}
-.label{font:600 20px 'JetBrains Mono',monospace;letter-spacing:3px;text-transform:uppercase;color:var(--sodium);margin-bottom:36px;position:relative}
-h1,h2{font-weight:700;letter-spacing:-1.5px;line-height:1.04;position:relative}
-h1{font-size:150px;letter-spacing:-4px}
-h2{font-size:84px;max-width:1150px}
-p{font-size:34px;line-height:1.38;color:var(--text2);font-weight:500;position:relative}
-p b{color:var(--text);font-weight:700}
-.mono{font-family:'JetBrains Mono',monospace}
-.shot{position:absolute;height:800px;border:1px solid var(--line);border-radius:6px;display:block}
-.cap{position:absolute;font:600 17px 'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);width:370px}
-.cap b{display:block;color:var(--sodium);font-weight:600;margin-bottom:6px}
-.lamp{position:absolute;width:14px;height:14px;border-radius:50%;background:var(--sodium);box-shadow:0 0 40px 14px rgba(255,181,71,.35)}
-.badge{display:inline-block;font:600 18px 'JetBrains Mono',monospace;letter-spacing:1.5px;padding:6px 12px;border-radius:4px;border:1px solid var(--seeker);color:var(--seeker)}
-/* diagram */
-.flow{position:absolute;left:140px;right:140px;top:380px;display:flex;gap:0}
-.flow:before{content:"";position:absolute;left:0;right:0;top:34px;height:1px;background:var(--line)}
-.step{flex:1;position:relative;padding-right:34px}
-.step .n{position:relative;width:70px;height:70px;border-radius:50%;background:var(--night);border:1px solid var(--sodium);color:var(--sodium);font:600 26px/68px 'JetBrains Mono',monospace;text-align:center;margin-bottom:34px}
-.step.hot .n{background:var(--sodium);color:var(--ink)}
-.step h3{font-size:36px;font-weight:700;letter-spacing:-.5px;margin-bottom:14px}
-.step p{font-size:29px;line-height:1.42}
-.step code{font:400 23px 'JetBrains Mono',monospace;color:var(--sodium)}
-.ticket{background:var(--night2);border:1px solid var(--line);border-radius:6px;padding:26px 30px}
-.facts .ticket{padding:34px 40px}
-.facts{position:absolute;left:140px;right:140px;top:320px;display:grid;grid-template-columns:1fr 1fr;gap:30px 40px}
-.facts .ticket .k{font:600 15px 'JetBrains Mono',monospace;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:16px}
-.facts .ticket .v{font:400 24px/1.4 'JetBrains Mono',monospace;color:var(--text);word-break:break-all}
-.facts .ticket .v.big{font:700 40px 'Space Grotesk',sans-serif;word-break:normal}
-.dots{display:flex;gap:14px;margin-top:40px;position:relative}
-.dots i{width:30px;height:30px;border-radius:50%;background:var(--line)}
-.dots i.l{background:var(--sodium);box-shadow:0 0 22px 4px rgba(255,181,71,.3)}
+.abs{position:absolute}
+svg.scene{position:absolute;left:0;top:0;display:block}
+h1,h2,h3{font-weight:700;overflow-wrap:anywhere;min-width:0}
+.mono{font-family:var(--mono)}
+.body{font-size:38px;line-height:1.35;font-weight:500;color:var(--text2)}
+.body b{color:var(--text);font-weight:700}
+.crop{position:absolute;overflow:hidden}
+.crop img{position:absolute;display:block;max-width:none}
+.phone{position:absolute;display:block;border-radius:6px;box-shadow:0 0 0 1px var(--line)}
+.pool{position:absolute;border-radius:50%;pointer-events:none;background:radial-gradient(circle,color-mix(in srgb,var(--sodium) 24%,transparent) 0%,color-mix(in srgb,var(--sodium) 9%,transparent) 42%,transparent 70%)}
+.badge{display:inline-block;font:600 28px var(--mono);letter-spacing:2px;padding:10px 18px;border-radius:4px;border:2px solid var(--seeker);color:var(--seeker);background:var(--night)}
+
+/* 2 type only */
+.q{font-size:220px;line-height:.94;letter-spacing:-7px}
+/* 5 filmstrip */
+.cap5 h3{font-size:64px;letter-spacing:-1.5px;margin-bottom:20px}
+.cap5 p{font-size:32px;line-height:1.38;font-weight:500;color:var(--text2)}
+.cap5 p b{color:var(--text);font-weight:700}
+
 @media print{
  @page{size:1920px 1080px;margin:0}
  html,body{overflow:visible;height:auto}
@@ -53,126 +41,185 @@ p b{color:var(--text);font-weight:700}
 }
 </style></head><body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+ <radialGradient id="pool"><stop offset="0" style="stop-color:var(--sodium);stop-opacity:.34"/><stop offset=".4" style="stop-color:var(--sodium);stop-opacity:.11"/><stop offset="1" style="stop-color:var(--sodium);stop-opacity:0"/></radialGradient>
+</defs></svg>
+
+<!-- 1 · full-bleed street -->
 <section class="slide">
- <div class="pool" style="left:60px;top:-260px"></div><div class="lamp" style="left:660px;top:92px"></div>
- <img class="shot" src="img/radar-unconnected.png" style="right:160px;top:140px" alt="Passersby before connecting">
- <div style="position:absolute;left:140px;top:300px">
-  <div class="label">Solana Mobile / CLOCK IN</div>
-  <h1>Passersby</h1>
-  <p style="font-size:52px;color:var(--text);margin-top:44px;max-width:900px;line-height:1.2;font-weight:500">Walk past another Seeker.<br>Both phones remember.</p>
+ <svg class="scene" id="s1" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="A night street seen from above. Two lamps light two pools. Two phones walk toward each other and cross."></svg>
+ <div class="abs" style="left:140px;top:84px;font-size:40px;letter-spacing:-1px;font-weight:700">Passersby</div>
+ <h1 class="abs" style="left:140px;top:716px;font-size:116px;line-height:1.02;letter-spacing:-3.5px">Walk past another Seeker.<br>Both phones remember.</h1>
+</section>
+
+<!-- 2 · type only -->
+<section class="slide">
+ <p class="abs body" style="left:140px;top:104px;color:var(--text2)">A Seeker owner, on X</p>
+ <h2 class="abs q" style="left:132px;top:176px">&ldquo;useless<br>paperweight.&rdquo;</h2>
+ <p class="abs mono" style="left:140px;top:716px;font-size:24px;color:var(--text2);letter-spacing:.5px">@hammerfrog64 / x.com/hammerfrog64/status/2014458973861396633</p>
+ <div class="abs" style="left:140px;right:140px;top:808px;height:2px;background:var(--line)"></div>
+ <p class="abs" style="left:140px;top:858px;font-size:68px;line-height:1.1;font-weight:700;letter-spacing:-1.5px;width:1500px">Every crypto social graph farms from a laptop.</p>
+</section>
+
+<!-- 3 · one phone bleeding off the bottom -->
+<section class="slide">
+ <div class="pool" style="left:1060px;top:80px;width:1100px;height:1100px"></div>
+ <h1 class="abs" style="left:140px;top:250px;font-size:168px;line-height:.98;letter-spacing:-5px">StreetPass<br>for Seekers.</h1>
+ <p class="abs body" style="left:140px;top:640px;width:880px;font-size:44px;line-height:1.3">Phones that pass each other on the street record the crossing on Solana.</p>
+ <img class="phone" src="img/radar-arrival.png" alt="Passersby radar with seven phones in reach and a new ticket arriving" style="left:1150px;top:-373px;width:700px;height:1516px">
+</section>
+
+<!-- 4 · three phones, stepped -->
+<section class="slide">
+ <div class="abs" style="left:140px;top:150px;width:480px"><h2 style="font-size:84px;letter-spacing:-2px">Radar</h2><p class="body" style="font-size:32px;margin-top:10px">A street at night. Every phone in reach is a warm dot under your lamp.</p></div>
+ <img class="phone" src="img/radar-live.png" alt="Radar" style="left:140px;top:470px;width:480px;height:1039px">
+ <div class="abs" style="left:720px;top:70px;width:480px"><h2 style="font-size:84px;letter-spacing:-2px">Ticket</h2><p class="body" style="font-size:32px;margin-top:10px">Each crossing is a stub you keep, with a WAVE.</p></div>
+ <img class="phone" src="img/encounters.png" alt="Encounters as ticket stubs" style="left:720px;top:330px;width:480px;height:1039px">
+ <div class="abs" style="left:1300px;top:230px;width:480px"><h2 style="font-size:84px;letter-spacing:-2px">Passport</h2><p class="body" style="font-size:32px;margin-top:10px">Your night log: count, streak, 14 lamps.</p></div>
+ <img class="phone" src="img/passport.png" alt="Passport night log" style="left:1300px;top:550px;width:480px;height:1039px">
+</section>
+
+<!-- 5 · three frames of the same street -->
+<section class="slide">
+ <svg class="scene" id="s5" style="top:100px" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="The same street in three frames. Two phones approach, hear each other's rotating code, and a ticket prints."></svg>
+ <div class="crop" style="left:1320px;top:558px;width:560px;height:124px;border-radius:5px"><img src="img/radar-arrival.png" alt="Ticket stub: PASSED 09:09" style="width:612.2px;left:-26.1px;top:-1054.7px"></div>
+ <div class="abs cap5" style="left:100px;top:770px;width:500px"><h3>Approach</h3><p>Two phones walk the same street, each under its own lamp.</p></div>
+ <div class="abs cap5" style="left:740px;top:770px;width:500px"><h3>Hear</h3><p>Each hears the other's code. It rotates every <b>5 minutes</b>. A one-way sighting never counts.</p></div>
+ <div class="abs cap5" style="left:1380px;top:770px;width:500px"><h3>Record</h3><p>A mutual sighting is signed and recorded on Solana. <b>One per pair per day.</b></p></div>
+</section>
+
+<!-- 6 · oversized ticket -->
+<section class="slide">
+ <div class="pool" style="left:120px;top:-380px;width:1700px;height:1700px"></div>
+ <div class="crop" style="left:300px;top:150px;width:1400px;height:522px;border-radius:14px;transform:rotate(-3deg);box-shadow:0 0 0 2px var(--line)"><img src="img/encounters.png" alt="An encounter ticket stub: PASSED 09:09, Ga7T...uvbj, WAVE" style="width:1605.6px;left:-102.8px;top:-625.1px"></div>
+ <h2 class="abs" style="left:140px;top:790px;font-size:112px;letter-spacing:-3px;line-height:1">A ticket you keep.</h2>
+ <p class="abs body" style="left:1260px;top:806px;width:520px;font-size:36px">One per pair per day. Two phones, one stub each.</p>
+</section>
+
+<!-- 7 · split type on a street line -->
+<section class="slide">
+ <h2 class="abs" style="left:140px;top:150px;font-size:132px;letter-spacing:-4px;color:var(--text3);line-height:1">Wallets are free to make.</h2>
+ <div class="abs" style="left:0;right:0;top:420px;height:2px;background:var(--line)"></div>
+ <div class="abs" style="right:140px;top:380px"><span class="badge">SEEKER VERIFIED</span></div>
+ <h2 class="abs" style="left:140px;top:500px;font-size:196px;letter-spacing:-6px;line-height:.98">A Genesis Token<br>is one device.</h2>
+ <p class="abs body" style="left:140px;top:930px;width:1500px;font-size:40px">So a verified encounter is <b>two real phones in one place</b>.</p>
+</section>
+
+<!-- 8 · the wave -->
+<section class="slide">
+ <svg class="scene" id="s8" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="A wave of SKR travels from one encounter party to the other along an arc above the street."></svg>
+ <div class="abs mono" style="left:160px;top:560px;width:520px;text-align:center;font-size:40px;font-weight:600;letter-spacing:1px">84ik&hellip;fmZG</div>
+ <div class="abs mono" style="left:1240px;top:560px;width:520px;text-align:center;font-size:40px;font-weight:600;letter-spacing:1px">HAZc&hellip;TMDL</div>
+ <div class="abs mono" style="left:160px;top:622px;width:520px;text-align:center;font-size:22px;letter-spacing:2px;color:var(--text2)">PASSED 12 OCT</div>
+ <div class="abs mono" style="left:1240px;top:622px;width:520px;text-align:center;font-size:22px;letter-spacing:2px;color:var(--text2)">PASSED 12 OCT</div>
+ <h2 class="abs" style="left:140px;top:760px;font-size:104px;letter-spacing:-3px;line-height:1.02;width:1300px">SKR only flows to people you passed.</h2>
+ <p class="abs body" style="left:1380px;top:790px;width:420px;font-size:34px">The program checks the signer is named on the encounter.</p>
+</section>
+
+<!-- 9 · proof -->
+<section class="slide">
+ <div class="crop" style="left:140px;top:130px;width:1640px;height:414px;border-radius:8px;box-shadow:0 0 0 1px var(--line)"><img src="img/explorer-tx.png" alt="Solana Explorer, devnet: transaction 4uqLxh...jLuu, Status Success, Finalized, slot 510,183,992" style="width:2445.5px;left:-404.8px;top:-407.3px"></div>
+ <p class="abs mono" style="left:140px;top:568px;font-size:22px;color:var(--text2);letter-spacing:.5px">explorer.solana.com/tx/4uqLxhEXtWciTgVF&hellip;Uy7s5dbv4xW9j2jLuu?cluster=devnet</p>
+ <h2 class="abs" style="left:140px;top:716px;font-size:96px;letter-spacing:-3px;line-height:1.02;width:880px">A real crossing, finalized on devnet.</h2>
+ <div class="abs" style="left:1100px;top:726px;width:680px">
+  <p class="mono" style="font-size:22px;letter-spacing:2px;color:var(--text2);margin-bottom:10px">PROGRAM</p>
+  <p class="mono" style="font-size:25px;color:var(--text);word-break:break-all;line-height:1.35">H15pvqJFh7isY3fMX4oZe2ezZ8xjM4RZmv2uemQhv1g2</p>
+  <p class="body" style="font-size:38px;margin-top:44px;color:var(--text)"><b>17</b> program tests.<br><b>22</b> server tests.</p>
+  <p class="body" style="font-size:38px;margin-top:10px">Mutation-tested. Security-reviewed.</p>
  </div>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>01</b> / 10</span></div>
 </section>
 
+<!-- 10 · close -->
 <section class="slide">
- <div class="pool" style="right:-200px;top:-300px"></div><div class="lamp" style="right:560px;top:92px"></div>
- <div class="label">The problem</div>
- <h2>A Seeker between airdrops is a paperweight.</h2>
- <div style="position:absolute;left:140px;top:470px;width:1100px">
-  <div class="ticket" style="border-left:3px solid var(--sodium)">
-   <p style="font-size:44px;color:var(--text);line-height:1.25;font-weight:500">"useless paperweight"</p>
-   <p class="mono" style="font-size:20px;margin-top:20px;color:var(--text3)">Seeker owner, x.com/hammerfrog64/status/2014458973861396633</p>
-  </div>
-  <p style="margin-top:56px;max-width:1000px">The phone has little reason to be opened. Meanwhile every crypto social graph is <b>farmable from a laptop</b>.</p>
- </div>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>02</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="left:-100px;top:-200px"></div><div class="lamp" style="left:520px;top:92px"></div>
- <img class="shot" src="img/radar-arrival.png" style="right:160px;top:140px" alt="Encounter arrives as a ticket stub">
- <div class="label">The idea</div>
- <h2 style="max-width:1000px">StreetPass for Seekers.</h2>
- <p style="max-width:960px;margin-top:48px">Phones that pass each other on the street record the crossing on Solana.</p>
- <p style="max-width:960px;margin-top:30px;color:var(--text)"><b>Only a phone in a pocket can do this.</b></p>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>03</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="left:500px;top:-420px"></div><div class="lamp" style="left:1050px;top:92px"></div>
- <div class="label">The product</div>
- <h2 style="font-size:64px">Three screens. One walk.</h2>
- <img class="shot" src="img/radar-live.png" style="left:140px;top:290px;height:640px" alt="Radar">
- <div class="cap" style="left:456px;top:330px;width:240px"><b>Radar</b>A street at night. Every phone within reach is a warm dot under your lamp.</div>
- <img class="shot" src="img/encounters.png" style="left:740px;top:290px;height:640px" alt="Encounters">
- <div class="cap" style="left:1056px;top:330px;width:240px"><b>Ticket encounters</b>Each crossing is a stub you keep, with a WAVE action.</div>
- <img class="shot" src="img/passport.png" style="left:1340px;top:290px;height:640px" alt="Passport">
- <div class="cap" style="left:1656px;top:330px;width:200px"><b>Passport</b>Your night log: count, streak, 14 lamps.</div>
- <div class="foot"><span>Passersby</span><span><b>04</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="left:350px;top:-480px"></div><div class="lamp" style="left:960px;top:92px"></div>
- <div class="label">How it works</div>
- <h2 style="font-size:64px;max-width:1500px">Five steps from a hallway to a chain account.</h2>
- <div class="flow">
-  <div class="step"><div class="n">1</div><h3>Broadcast</h3><p>A native Kotlin module advertises a rotating Bluetooth LE token: an HMAC of identity and the 5-minute epoch, manufacturer id <code>0xFFFF</code>.</p></div>
-  <div class="step"><div class="n">2</div><h3>Listen</h3><p>Phones report what they hear to the server. A one-way sighting never counts.</p></div>
-  <div class="step"><div class="n">3</div><h3>Match</h3><p>Both phones heard each other. The server signs an <code>Ed25519</code> attestation.</p></div>
-  <div class="step"><div class="n">4</div><h3>Relay</h3><p>The server relays <code>record_encounter</code> to the Solana program.</p></div>
-  <div class="step hot"><div class="n">5</div><h3>Record</h3><p>The program writes <code>Encounter</code> at <code>["encounter", lo, hi, day]</code>, one per pair per day, and updates both streaks.</p></div>
- </div>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>05</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="right:-250px;top:-300px"></div><div class="lamp" style="right:520px;top:92px"></div>
- <div class="label">Why Seeker</div>
- <h2 style="max-width:1400px">One Genesis Token per device. One crossing, two real phones.</h2>
- <p style="max-width:1250px;margin-top:56px">The Seeker Genesis Token is one per device, so a verified encounter is <b>two distinct phones in one place</b>. An in-person graph that can't be faked from a laptop.</p>
- <div style="position:absolute;left:140px;top:690px;display:flex;gap:26px;align-items:center">
-  <div class="ticket" style="width:380px"><div class="mono" style="font-size:15px;letter-spacing:2px;color:var(--text3)">PHONE A</div><div style="margin:12px 0 16px;font-size:34px;font-weight:700">Genesis Token</div><span class="badge">SEEKER VERIFIED</span></div>
-  <div class="mono" style="color:var(--sodium);font-size:22px;letter-spacing:2px">PASSED</div>
-  <div class="ticket" style="width:380px"><div class="mono" style="font-size:15px;letter-spacing:2px;color:var(--text3)">PHONE B</div><div style="margin:12px 0 16px;font-size:34px;font-weight:700">Genesis Token</div><span class="badge">SEEKER VERIFIED</span></div>
- </div>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>06</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="left:-150px;top:-250px"></div><div class="lamp" style="left:480px;top:92px"></div>
- <img class="shot" src="img/passport.png" style="right:160px;top:140px" alt="Passport with 14-day lamp row">
- <div class="label">SKR with proof</div>
- <h2 style="max-width:1000px">You can only wave at someone you passed.</h2>
- <p style="max-width:960px;margin-top:44px">Waving sends SKR. The program checks the signer is named on the encounter, so every wave has a crossing behind it.</p>
- <p style="max-width:960px;margin-top:26px">The daily return loop: <b>streaks</b> and the <b>14-day lamp row</b>.</p>
- <div class="dots"><i class="l"></i><i class="l"></i><i></i><i class="l"></i><i class="l"></i><i class="l"></i><i></i><i class="l"></i><i class="l"></i><i class="l"></i><i class="l"></i><i></i><i class="l"></i><i class="l"></i></div>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>07</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="left:600px;top:-500px"></div><div class="lamp" style="left:1150px;top:92px"></div>
- <div class="label">Proof it runs</div>
- <h2 style="font-size:64px;max-width:1500px">End to end on devnet.</h2>
- <div class="facts">
-  <div class="ticket"><div class="k">Devnet program</div><div class="v">H15pvqJFh7isY3fMX4oZe2ezZ8xjM4RZmv2uemQhv1g2</div></div>
-  <div class="ticket"><div class="k">Live server</div><div class="v">passersby-api.fly.dev</div></div>
-  <div class="ticket"><div class="k">One-way sighting</div><div class="v big">Did not confirm</div></div>
-  <div class="ticket"><div class="k">Mutual sighting</div><div class="v big">Confirmed in about 2 seconds</div></div>
-  <div class="ticket"><div class="k">Read back from chain</div><div class="v big">Encounter + both Profile accounts</div></div>
-  <div class="ticket"><div class="k">Tests, mutation-tested</div><div class="v big">14 program, 15 server</div></div>
- </div>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>08</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="right:-100px;top:-300px"></div><div class="lamp" style="right:420px;top:92px"></div>
- <img class="shot" src="img/radar-live.png" style="right:160px;top:140px" alt="Radar with phones within reach">
- <div class="label">Launch</div>
- <h2 style="max-width:1000px">Ships to the Solana dApp Store.</h2>
- <p style="max-width:1000px;margin-top:56px">Built for meetups, hacker houses and Breakpoint, where <b>Seekers fill one room</b>. Every room is a street.</p>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>09</b> / 10</span></div>
-</section>
-
-<section class="slide">
- <div class="pool" style="left:410px;top:-120px"></div><div class="lamp" style="left:960px;top:92px"></div>
- <div style="position:absolute;left:0;right:0;top:360px;text-align:center">
-  <h1 style="font-size:130px;margin:0 auto;max-width:1600px">Every crossing counts.</h1>
-  <p class="mono" style="font-size:30px;margin-top:64px;color:var(--sodium)">github.com/kamalbuilds/passersby</p>
- </div>
- <div class="street"></div><div class="foot"><span>Passersby</span><span><b>10</b> / 10</span></div>
+ <svg class="scene" id="s10" width="1920" height="1080" viewBox="0 0 1920 1080" role="img" aria-label="The two phones have crossed and walk on in opposite directions under the lamps."></svg>
+ <h1 class="abs" style="right:140px;top:640px;font-size:150px;letter-spacing:-5px;line-height:1;text-align:right;white-space:nowrap">Every crossing counts.</h1>
+ <p class="abs mono" style="right:140px;top:850px;font-size:36px;color:var(--sodium);letter-spacing:.5px;text-align:right">github.com/kamalbuilds/passersby</p>
 </section>
 
 <script>
+const NS='http://www.w3.org/2000/svg';
+function E(p,tag,a){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);p.appendChild(e);return e}
+let gid=0;
+/* street: surface band, two kerbs, dashed centre line */
+function street(s,x0,x1,top,bot){
+ E(s,'rect',{x:x0,y:top,width:x1-x0,height:bot-top,fill:'var(--night2)'});
+ E(s,'line',{x1:x0,y1:top,x2:x1,y2:top,stroke:'var(--line)','stroke-width':3});
+ E(s,'line',{x1:x0,y1:bot,x2:x1,y2:bot,stroke:'var(--line)','stroke-width':3});
+ E(s,'line',{x1:x0,y1:(top+bot)/2,x2:x1,y2:(top+bot)/2,stroke:'var(--line)','stroke-width':3,'stroke-dasharray':'30 26'});
+}
+/* lamp: pool of sodium light plus a hot bulb on the kerb */
+function lamp(s,x,y,r){
+ E(s,'circle',{cx:x,cy:y,r:r,fill:'url(#pool)'});
+ E(s,'circle',{cx:x,cy:y,r:9,fill:'var(--sodium)'});
+ E(s,'circle',{cx:x,cy:y,r:4,fill:'var(--text)'});
+}
+/* walker: a phone as a dot with the path it just walked fading behind it */
+function walker(s,x1,y1,x2,y2,r,dim){
+ const id='g'+(gid++);
+ const g=E(s,'linearGradient',{id:id,gradientUnits:'userSpaceOnUse',x1:x1,y1:y1,x2:x2,y2:y2});
+ E(g,'stop',{offset:0,style:'stop-color:var(--sodium);stop-opacity:0'});
+ E(g,'stop',{offset:1,style:'stop-color:var(--sodium);stop-opacity:'+(dim?.25:.9)});
+ E(s,'line',{x1:x1,y1:y1,x2:x2,y2:y2,stroke:'url(#'+id+')','stroke-width':6,'stroke-linecap':'round','stroke-dasharray':'0.1 20'});
+ E(s,'circle',{cx:x2,cy:y2,r:r*2.4,fill:'none',stroke:'var(--sodium)','stroke-opacity':dim?.12:.28,'stroke-width':2});
+ E(s,'circle',{cx:x2,cy:y2,r:r,fill:dim?'var(--text3)':'var(--sodium)'});
+}
+function ring(s,x,y,rs,op){rs.forEach((r,i)=>E(s,'circle',{cx:x,cy:y,r:r,fill:'none',stroke:'var(--sodium)','stroke-opacity':op/(i+1),'stroke-width':2.5}))}
+
+/* slide 1 */
+(()=>{const s=document.getElementById('s1');
+ street(s,0,1920,250,620);
+ lamp(s,600,250,470);lamp(s,1340,620,470);
+ walker(s,640,402,930,432,11);
+ walker(s,1290,470,990,438,11);
+ ring(s,960,435,[64,112,168],.34);
+})();
+
+/* slide 5 : three frames, one street */
+(()=>{const s=document.getElementById('s5');
+ street(s,0,1920,150,590);
+ lamp(s,330,150,330);lamp(s,960,590,330);lamp(s,1610,150,330);
+ /* frame 1: approach */
+ walker(s,60,330,200,340,11);
+ walker(s,610,420,500,410,11);
+ /* frame 2: both hear */
+ walker(s,790,340,860,348,11);
+ walker(s,1130,400,1060,392,11);
+ ring(s,860,348,[50,92],.4);ring(s,1060,392,[50,92],.4);
+ /* one-way sighting: a third phone nobody hears back */
+ E(s,'line',{x1:1000,y1:520,x2:1006,y2:470,stroke:'var(--text3)','stroke-width':2,'stroke-dasharray':'6 8'});
+ E(s,'circle',{cx:1000,cy:530,r:8,fill:'var(--text3)'});
+ /* frame 3: crossed */
+ walker(s,1400,350,1560,396,11);
+ walker(s,1900,404,1730,344,11);
+ ring(s,1650,372,[60,110],.3);
+ /* frame dividers */
+ [640,1280].forEach(x=>E(s,'line',{x1:x,y1:60,x2:x,y2:1020,stroke:'var(--line)','stroke-width':2}));
+})();
+
+/* slide 8 : the wave */
+(()=>{const s=document.getElementById('s8');
+ street(s,0,1920,360,520);
+ lamp(s,230,360,470);lamp(s,1690,520,470);
+ const a=E(s,'path',{d:'M420 410 Q960 -130 1500 410',fill:'none',stroke:'var(--sodium)','stroke-width':4,'stroke-linecap':'round'});
+ E(s,'path',{d:'M1457.9 397.1 L1500 410 L1487.1 367.9',fill:'none',stroke:'var(--sodium)','stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round'});
+ E(s,'circle',{cx:420,cy:440,r:44,fill:'none',stroke:'var(--sodium)','stroke-opacity':.28,'stroke-width':2});
+ E(s,'circle',{cx:420,cy:440,r:17,fill:'var(--sodium)'});
+ E(s,'circle',{cx:1500,cy:440,r:44,fill:'none',stroke:'var(--sodium)','stroke-opacity':.28,'stroke-width':2});
+ E(s,'circle',{cx:1500,cy:440,r:17,fill:'var(--sodium)'});
+ E(s,'rect',{x:830,y:116,width:260,height:70,rx:35,fill:'var(--sodium)'});
+ const t=E(s,'text',{x:960,y:162,'text-anchor':'middle','font-family':"'JetBrains Mono',monospace",'font-size':30,'font-weight':600,fill:'var(--ink)','letter-spacing':2});t.textContent='WAVE 5 SKR';
+})();
+
+/* slide 10 : after the crossing */
+(()=>{const s=document.getElementById('s10');
+ street(s,0,1920,90,450);
+ lamp(s,520,90,360);lamp(s,1420,450,360);
+ walker(s,880,268,1300,262,11);
+ walker(s,1040,256,620,268,11);
+ ring(s,960,262,[56,100],.2);
+})();
+
+/* deck navigation (screen only) */
 const S=[...document.querySelectorAll('.slide')];let i=Math.min(S.length-1,Math.max(0,(+location.hash.slice(1)||1)-1));
 function show(n){i=Math.max(0,Math.min(S.length-1,n));S.forEach((s,k)=>s.classList.toggle('on',k===i));history.replaceState(null,'','#'+(i+1))}
 function fit(){document.documentElement.style.setProperty('--s',Math.min(innerWidth/1920,innerHeight/1080))}
